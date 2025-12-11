@@ -131,7 +131,7 @@ namespace BubaCode.ViewModels
             }
             
             var typeface = new Typeface("Consolas");
-            var brush = Brushes.White;
+            var brush = Brushes.Black;
 
             double renderedLinesHeight = 0;
             // time consuming - to change
@@ -191,6 +191,19 @@ namespace BubaCode.ViewModels
             StringBuilder result = new();
             result.AppendJoin("\r\n", _lines);
             return result.ToString();
+        }
+
+        public void Import(IEnumerable<String> lines)
+        {
+            _lines.Clear();
+            _caretLine = 0;
+            foreach (var line in lines)
+            {
+                _lines.Add(new StringBuilder(line));
+            }
+            _caretLine = _lines.Count - 1;
+            _caretIndex = _lines[_caretLine].Length;
+            
         }
     }
 }

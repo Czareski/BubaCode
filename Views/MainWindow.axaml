@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         x:Class="BubaCode.Views.MainWindow"
-        x:DataType="vm:MainWindowViewModel"
+        x:DataType="vm:MainWindowViewModel" 
         Icon="/Assets/avalonia-logo.ico"
         Title="BubaCode"
         d:DesignWidth="1280"
@@ -20,19 +20,16 @@
 		    <Setter Property="FontFamily" Value="NonMono"></Setter>
         </Style>
     </Window.Styles>
-    <Design.DataContext>
-        <!-- This only sets the DataContext for the previewer in an IDE,
-             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-        <vm:MainWindowViewModel/>
 
-    </Design.DataContext>
     <StackPanel Orientation="Horizontal">
         <StackPanel Orientation="Vertical" Background="#161618" Width="300">
             
         </StackPanel>
         <StackPanel>
-            <StackPanel Width="980" Height="50" Background="#161618" FlowDirection="RightToLeft">
+            <StackPanel Width="980" Height="50" Background="#161618" FlowDirection="RightToLeft" Orientation="Horizontal">
+                <Button Foreground="Wheat" Height="30" Margin="10" Command="{Binding Open }" CommandParameter="{Binding #CodeBox}">Open</Button>
                 <Button Foreground="Wheat" Height="30" Margin="10" Command="{Binding Save }" CommandParameter="{Binding #CodeBox}">Save</Button>
+                
             </StackPanel>
             <vm:CodeBox x:Name="CodeBox" Width="980" Background="#1A1A1D"/>
         </StackPanel>
