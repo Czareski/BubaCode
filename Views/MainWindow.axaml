@@ -14,6 +14,7 @@
         Height="720"
         CanResize="False"
         >
+    
     <Window.Styles>
         <Style Selector="TextBlock">
 		    <Setter Property="FontFamily" Value="NonMono"></Setter>
@@ -31,9 +32,9 @@
         </StackPanel>
         <StackPanel>
             <StackPanel Width="980" Height="50" Background="#161618" FlowDirection="RightToLeft">
-                <Button Foreground="Wheat" Height="30" Margin="10" Command="{Binding Save}">Save</Button>
+                <Button Foreground="Wheat" Height="30" Margin="10" Command="{Binding Save }" CommandParameter="{Binding #CodeBox}">Save</Button>
             </StackPanel>
-            <vm:CodeBox Width="980" Background="#1A1A1D"/>
+            <vm:CodeBox x:Name="CodeBox" Width="980" Background="#1A1A1D"/>
         </StackPanel>
     </StackPanel>
 </Window>

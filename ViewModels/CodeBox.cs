@@ -19,6 +19,7 @@ namespace BubaCode.ViewModels
     {
         public static readonly StyledProperty<IBrush?> BackgroundProperty =
             Border.BackgroundProperty.AddOwner<Panel>();
+        
         public IBrush? Background
         {
             get => GetValue(BackgroundProperty);
@@ -136,15 +137,15 @@ namespace BubaCode.ViewModels
             // time consuming - to change
             for (int i = 0; i < _lines.Count; i++)
             {
+                string line = _lines[i].ToString() + "\r\n";
                 var lineText = new FormattedText(
-                    _lines[i].ToString() + "\r\n",
+                    line,
                     CultureInfo.CurrentCulture,
                     FlowDirection.LeftToRight,
                     typeface,
                     16,
                     brush);
                 context.DrawText(lineText, new Point(0, renderedLinesHeight));
-                
                 if (i == _caretLine && _showCaret)
                 {
                     double lineHeight = new TextMetrics(typeface.GlyphTypeface, 16).LineHeight;
@@ -185,7 +186,7 @@ namespace BubaCode.ViewModels
             }
         }
 
-        public string GetText()
+        public string Export()
         {
             StringBuilder result = new();
             result.AppendJoin("\r\n", _lines);
