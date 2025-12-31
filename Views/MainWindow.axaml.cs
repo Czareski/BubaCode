@@ -1,14 +1,15 @@
 using Avalonia.Controls;
 using BubaCode.ViewModels;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace BubaCode.Views;
 
 public partial class MainWindow : Window
 {
+    
     public MainWindow()
     {
-        FileDialogService service = new FileDialogService(this);
-        DataContext = new MainWindowViewModel(service);
         InitializeComponent();
+        DataContext = new MainWindowViewModel();
     }
 }

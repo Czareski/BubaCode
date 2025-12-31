@@ -1,0 +1,11 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:views="clr-namespace:BubaCode.Views"
+
+             x:Class="BubaCode.Views.CodeBox">
+    <UserControl.Styles>
+        <Style Selector="views|CodeBox:focus">
+            <Setter Property="Background" Value="Red"/>
+        </Style>
+    </UserControl.Styles>
+</UserControl>

@@ -25,6 +25,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Models\" />
+    <Compile Update="Views\CodeBox\CodeBox.axaml.cs">
+      <DependentUpon>CodeBox.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
 </Project>

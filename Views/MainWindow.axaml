@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:BubaCode.ViewModels"
+        xmlns:views="using:BubaCode.Views"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
@@ -13,25 +14,26 @@
         Width="1280"
         Height="720"
         CanResize="False"
+        
         >
     
     <Window.Styles>
         <Style Selector="TextBlock">
 		    <Setter Property="FontFamily" Value="NonMono"></Setter>
         </Style>
+        
     </Window.Styles>
-
-    <StackPanel Orientation="Horizontal">
-        <StackPanel Orientation="Vertical" Background="#161618" Width="300">
-            
-        </StackPanel>
-        <StackPanel>
-            <StackPanel Width="980" Height="50" Background="#161618" FlowDirection="RightToLeft" Orientation="Horizontal">
-                <Button Foreground="Wheat" Height="30" Margin="10" Command="{Binding Open }" CommandParameter="{Binding #CodeBox}">Open</Button>
-                <Button Foreground="Wheat" Height="30" Margin="10" Command="{Binding Save }" CommandParameter="{Binding #CodeBox}">Save</Button>
+    <Grid>
+        <StackPanel Orientation="Horizontal">
+            <StackPanel Orientation="Vertical" Background="#161618" Width="300">
                 
             </StackPanel>
-            <vm:CodeBox x:Name="CodeBox" Width="980" Background="#1A1A1D"/>
+            <StackPanel>
+                <views:FileBar DataContext="{Binding FileBarViewModel}"></views:FileBar>
+                <views:CodeBox DataContext="{Binding CodeBoxViewModel}" CaretLine="{Binding CaretLine}" CaretColumn="{Binding CaretColumn}" Lines="{Binding Lines}" Width="980" Height="670" Background="#1A1A1D"/>
+            </StackPanel>
+            <TextBox></TextBox>
         </StackPanel>
-    </StackPanel>
+        <views:ErrorView DataContext="{Binding ErrorViewModel}"/>
+    </Grid>
 </Window>

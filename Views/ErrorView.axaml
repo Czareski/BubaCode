@@ -1,0 +1,46 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:BubaCode.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="BubaCode.Views.ErrorView"
+             x:DataType="vm:ErrorViewModel">
+    <UserControl.Styles>
+        <Style Selector="Border.Error">
+            <Setter Property="Background" Value="#A00A0A"/>
+            <Setter Property="BorderBrush" Value="#FF0000"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="CornerRadius" Value="15"/>
+            <Setter Property="Opacity" Value="0"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.1"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Border.Error.shown">
+            <Setter Property="Opacity" Value="1"/>
+        </Style>
+
+        <Style Selector="TextBlock.Error">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="TextAlignment" Value="Center"/>
+        </Style>
+    </UserControl.Styles>
+    <Border
+        Classes.Error="True"
+        Classes.shown="{Binding IsShown}"
+        HorizontalAlignment="Right"
+        VerticalAlignment="Bottom"
+        Margin="0,20,20,20"
+        ZIndex="1000"
+    >
+        <StackPanel Orientation="Horizontal" Spacing="10">
+            <PathIcon VerticalAlignment="Center" Height="15" Width="15" Foreground="White"
+                      Data="{StaticResource error_circle_regular}"/>
+            <TextBlock VerticalAlignment="Center" Classes="Error" Text="{Binding ErrorMessage}"/>
+        </StackPanel>
+    </Border>
+</UserControl>

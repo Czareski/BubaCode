@@ -1,0 +1,28 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:vm="using:BubaCode.ViewModels"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="BubaCode.Views.FileBar"
+             x:DataType="vm:FileBarViewModel">
+    
+    <StackPanel Width="980" Height="50" Background="#161618" FlowDirection="RightToLeft" Orientation="Horizontal">
+        <Button Foreground="Wheat" Width="30" Height="30" Margin="15  0 0 0" Command="{Binding Open }" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}">
+            <Path Data="{StaticResource folder_open_regular} "
+                  Stroke="White"
+                  Fill="White"
+                  Width="24"
+                  Height="24"/>
+        </Button>
+        <Button Foreground="Wheat" Width="30" Height="30" Margin="2" Command="{Binding Save }">
+            <Path Data="{StaticResource save_regular}"
+                  Stroke="White"
+                  Fill="White"
+                  Width="24"
+                  Height="24"/>
+        </Button>
+        <TextBlock Text="{Binding FileName}" Foreground="White" Height="30" Padding="10 4 10 0" Background="#111111"></TextBlock>
+        <TextBlock Text="{Binding FilePath}" Foreground="White" Height="30" Padding="4"></TextBlock>
+    </StackPanel>
+</UserControl>

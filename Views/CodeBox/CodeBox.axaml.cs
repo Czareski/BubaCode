@@ -1,0 +1,248 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Globalization;
+using System.Text;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.Shapes;
+using Avalonia.Input;
+using Avalonia.Interactivity;
+using Avalonia.Markup.Xaml;
+using Avalonia.Media;
+using Avalonia.Media.TextFormatting;
+using Avalonia.Threading;
+using BubaCode.Models;
+using BubaCode.ViewModels;
+
+namespace BubaCode.Views;
+
+public partial class CodeBox : Control
+    {
+        public static readonly StyledProperty<IBrush?> BackgroundProperty = Border.BackgroundProperty.AddOwner<Panel>();
+        public IBrush? Background
+        {
+            get => GetValue(BackgroundProperty);
+            set => SetValue(BackgroundProperty, value);
+        }
+        
+        public static readonly StyledProperty<ObservableCollection<EditorLine>> LinesProperty =
+            AvaloniaProperty.Register<CodeBox, ObservableCollection<EditorLine>>(nameof(Lines));
+
+        public ObservableCollection<EditorLine>? Lines
+        {
+            get => GetValue(LinesProperty);
+            set => SetValue(LinesProperty, value);
+        }
+        public static readonly StyledProperty<int> CaretLineProperty =
+            AvaloniaProperty.Register<CodeBox, int>(nameof(CaretLine));
+
+        public int CaretLine
+        {
+            get => GetValue(CaretLineProperty);
+            set => SetValue(CaretLineProperty, value);
+        }
+
+        public static readonly StyledProperty<int> CaretColumnProperty =
+            AvaloniaProperty.Register<CodeBox, int>(nameof(CaretColumn));
+
+        public int CaretColumn
+        {
+            get => GetValue(CaretColumnProperty);
+            set => SetValue(CaretColumnProperty, value);
+        }
+        public TextMetrics metrics;
+
+        private CodeBoxViewModel _vm;
+        private CodeBoxMouseInputHandler _inputHandler;
+        private readonly DispatcherTimer _caretTimer;
+        private bool _showCaret = false;
+        private readonly Typeface _typeface = new Typeface("JetBrains Mono");
+        private List<FormattedText> _formattedLines = new List<FormattedText>();
+        
+        public CodeBox()
+        {
+            Focusable = true;
+            
+            _caretTimer = new DispatcherTimer();
+            _caretTimer.Interval = new TimeSpan(5000000);
+            metrics = new TextMetrics(_typeface.GlyphTypeface, 16);
+            _formattedLines = new List<FormattedText>([new FormattedText(
+                "",
+                CultureInfo.CurrentCulture,
+                FlowDirection.LeftToRight,
+                _typeface,
+                16,
+                Brushes.White)]);
+            AttachedToVisualTree += (_, _) =>
+            {
+                _vm = DataContext as CodeBoxViewModel;
+                _inputHandler = new CodeBoxMouseInputHandler(_vm, this);
+            };
+            InitCaretTimer();
+            
+        }
+
+        private void InitCaretTimer()
+        {
+            _caretTimer.Start();
+            _caretTimer.Tick += (_, _) =>
+            {
+                _showCaret = !_showCaret;
+                InvalidateVisual();
+            };
+        }
+        
+        protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnAttachedToVisualTree(e);
+            Focus();
+        }
+        
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            ((CodeBoxViewModel)DataContext!).OnKeyDown(e);
+            InvalidateVisual();
+        }
+
+        protected override void OnPointerPressed(PointerPressedEventArgs e)
+        {
+            base.OnPointerPressed(e);
+            Focus();
+            _inputHandler.OnPointerPressed(e.GetPosition(this));
+            InvalidateVisual();
+        }
+        
+        protected override void OnPointerEntered(PointerEventArgs e)
+        {
+            base.OnPointerEntered(e);
+            Cursor = new Cursor(StandardCursorType.Ibeam);
+        }
+        protected override void OnLostFocus(RoutedEventArgs e)
+        {
+            base.OnLostFocus(e);
+            _caretTimer.Stop();
+            _showCaret = false;
+            InvalidateVisual();
+        }
+        protected override void OnGotFocus(GotFocusEventArgs e)
+        {
+            base.OnGotFocus(e);
+            _showCaret = true;
+            _caretTimer.Start();
+            InvalidateVisual();
+        }
+        protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+        {
+            base.OnPropertyChanged(change);
+
+            if (change.Property == LinesProperty)
+            {
+                if (change.OldValue is ObservableCollection<EditorLine> oldCollection)
+                {
+                    foreach (var line in oldCollection)
+                        line.PropertyChanged -= OnLineChanged;
+                    oldCollection.CollectionChanged -= OnLinesCollectionChanged;
+                }
+
+                if (change.NewValue is ObservableCollection<EditorLine> newCollection)
+                {
+                    foreach (var line in newCollection)
+                        line.PropertyChanged += OnLineChanged;
+                    newCollection.CollectionChanged += OnLinesCollectionChanged;
+                }
+            }
+        }
+        private void OnLinesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (e.OldItems != null)
+            {
+                foreach (EditorLine oldLine in e.OldItems)
+                {
+                    oldLine.PropertyChanged -= OnLineChanged;
+                }    
+            }
+
+            _formattedLines = new List<FormattedText>();
+            if (e.NewItems != null)
+            {
+                foreach (EditorLine newLine in e.NewItems)
+                {
+                    newLine.PropertyChanged += OnLineChanged;
+                }    
+            }
+
+            foreach (EditorLine line in Lines)
+            {
+                _formattedLines.Add(new FormattedText(
+                    line.Text,
+                    CultureInfo.CurrentCulture,
+                    FlowDirection.LeftToRight,
+                    _typeface,
+                    16,
+                    Brushes.White));
+            }
+            InvalidateVisual();
+        }
+        private void OnLineChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (sender is EditorLine line)
+            {
+                var index = Lines!.IndexOf(line);
+                
+                var brush = Brushes.White;
+                _formattedLines[index] = new FormattedText(
+                    line.Text,
+                    CultureInfo.CurrentCulture,
+                    FlowDirection.LeftToRight,
+                    _typeface,
+                    16,
+                    brush);
+            }
+            InvalidateVisual();
+        }
+        
+        public override void Render(DrawingContext context)
+        {
+            base.Render(context);
+            var background = Background;
+            
+            
+            if (background != null)
+            {
+                var renderSize = Bounds.Size;
+                context.FillRectangle(background, new Rect(renderSize));
+            }
+            
+            for (int i = 0; i < _formattedLines.Count; i++)
+            {
+                RenderLine(context, i);
+                
+                if (i == CaretLine && _showCaret)
+                {
+                    RenderCaret(context, i);
+                }
+            }
+        }
+        private void RenderLine(DrawingContext context, int index)
+        {
+            context.DrawText(_formattedLines[index], new Point(0, index * metrics.LineHeight));
+        }
+        private void RenderCaret(DrawingContext context, int lineIndex)
+        {
+            double carretX = Lines[lineIndex].Length > 0 ? CaretColumn * _formattedLines[lineIndex].Width / Lines[lineIndex].Length : 1;
+            context.DrawLine(new Pen(Brushes.Red), new Point(carretX, lineIndex * metrics.LineHeight), new Point(carretX, lineIndex * metrics.LineHeight + metrics.LineHeight));
+        }
+
+        public double GetLineWidth(int index)
+        {
+            if (_formattedLines.Count <= index)
+            {
+                return 0;
+            }
+            return _formattedLines[index].Width;
+        }
+}
