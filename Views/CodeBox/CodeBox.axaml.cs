@@ -115,7 +115,21 @@ public partial class CodeBox : Control
             _inputHandler.OnPointerPressed(e.GetPosition(this));
             InvalidateVisual();
         }
-        
+
+        protected override void OnPointerReleased(PointerReleasedEventArgs e)
+        {
+            base.OnPointerReleased(e);
+            _inputHandler.OnPointerRealesed(e.GetPosition(this));
+            InvalidateVisual();
+        }
+
+        protected override void OnPointerMoved(PointerEventArgs e)
+        {
+            base.OnPointerMoved(e);
+            _inputHandler.OnPointerMoved(e.GetPosition(this));
+            InvalidateVisual();
+        }
+
         protected override void OnPointerEntered(PointerEventArgs e)
         {
             base.OnPointerEntered(e);

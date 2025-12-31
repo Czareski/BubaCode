@@ -103,9 +103,18 @@ public partial class CodeBoxViewModel : ViewModelBase
             }    
     }
     
-    public void OnPointerPressed(int line, int column)
+    public void SetCaret(int line, int column)
     {
+        if (line >= Lines.Count)
+        {
+            return;
+        }
         CaretLine = line;
+
+        if (column > Lines[line].Length)
+        {
+            column = Lines[line].Length;
+        }
         CaretColumn = column;
     }
     
