@@ -105,13 +105,13 @@ public partial class CodeBoxViewModel : ViewModelBase
     
     public void SetCaret(int line, int column)
     {
-        if (line >= Lines.Count)
+        if (line >= Lines.Count || line < 0)
         {
             return;
         }
         CaretLine = line;
 
-        if (column > Lines[line].Length)
+        if (column > Lines[line].Length || column < 0)
         {
             column = Lines[line].Length;
         }

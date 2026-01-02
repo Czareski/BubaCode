@@ -15,6 +15,7 @@ public class Selection
     {
         _firstPosition = pressedPosition;
         StartPosition = pressedPosition;
+        EndPosition = pressedPosition;
     }
     public void Update(Point position)
     {

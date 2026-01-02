@@ -1,6 +1,8 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Avalonia.Media;
 
 namespace BubaCode.Models;
 
@@ -13,10 +15,9 @@ public class EditorLine : INotifyPropertyChanged
     }
     
     private StringBuilder _line;
-
     public string Text => _line.ToString();
     public int Length => _line.Length;
-
+    
     public EditorLine()
     {
         _line = new StringBuilder();
@@ -44,5 +45,4 @@ public class EditorLine : INotifyPropertyChanged
         _line = newStringBuilder;
         OnPropertyChanged(nameof(Text));
     }
-    
 }

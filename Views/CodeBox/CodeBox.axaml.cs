@@ -230,6 +230,9 @@ public partial class CodeBox : Control
                 var renderSize = Bounds.Size;
                 context.FillRectangle(background, new Rect(renderSize));
             }
+
+            RenderSelectionBackground(context);
+            
             
             for (int i = 0; i < _formattedLines.Count; i++)
             {
@@ -241,6 +244,27 @@ public partial class CodeBox : Control
                 }
             }
         }
+
+        private void RenderSelectionBackground(DrawingContext context)
+        {
+            Selection selection = _inputHandler.GetSelection();
+
+            if (selection == null) return;
+            
+            int column = selection.StartPosition.Y;
+            for (int i = 0; i <= selection.EndPosition.X - selection.StartPosition.X; i++)
+            {
+                var line = selection.StartPosition.X + i;
+                var left = column * _formattedLines[line].Width / Lines[line].Length;
+                left = (left < 0) ? 0 : left;
+                var right = (selection.EndPosition.X == line) ? selection.EndPosition.Y * _formattedLines[line].Width / Lines[line].Length : _formattedLines[line].Width;
+                var top = metrics.LineHeight * line;
+                var bottom = top + metrics.LineHeight;
+
+                column = 0;
+                context.FillRectangle(Brushes.Crimson, new Rect(left, top, right - left, bottom - top));
+            }
+        }
         private void RenderLine(DrawingContext context, int index)
         {
             context.DrawText(_formattedLines[index], new Point(0, index * metrics.LineHeight));
@@ -248,12 +272,12 @@ public partial class CodeBox : Control
         private void RenderCaret(DrawingContext context, int lineIndex)
         {
             double carretX = Lines[lineIndex].Length > 0 ? CaretColumn * _formattedLines[lineIndex].Width / Lines[lineIndex].Length : 1;
-            context.DrawLine(new Pen(Brushes.Red), new Point(carretX, lineIndex * metrics.LineHeight), new Point(carretX, lineIndex * metrics.LineHeight + metrics.LineHeight));
+            context.DrawRectangle(new Pen(Brushes.Red), new Rect(new Point(carretX, lineIndex * metrics.LineHeight), new Point(carretX + 1, lineIndex * metrics.LineHeight + metrics.LineHeight)));
         }
 
         public double GetLineWidth(int index)
         {
-            if (_formattedLines.Count <= index)
+            if (index >= _formattedLines.Count || index < 0)
             {
                 return 0;
             }
