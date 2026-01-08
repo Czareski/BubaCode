@@ -21,6 +21,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public MainWindowViewModel()
     {
+        
         _errorService = new ErrorService();
         _errorViewModel = new ErrorViewModel(_errorService);
         

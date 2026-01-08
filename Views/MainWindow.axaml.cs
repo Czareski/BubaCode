@@ -10,6 +10,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        ClipboardService clipboard = new ClipboardService(TopLevel.GetTopLevel(this));
         DataContext = new MainWindowViewModel();
     }
 }

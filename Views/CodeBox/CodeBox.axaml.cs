@@ -65,6 +65,8 @@ public partial class CodeBox : Control
         
         public CodeBox()
         {
+            
+            
             Focusable = true;
             
             _caretTimer = new DispatcherTimer();
@@ -77,6 +79,7 @@ public partial class CodeBox : Control
                 _typeface,
                 16,
                 Brushes.White)]);
+            
             AttachedToVisualTree += (_, _) =>
             {
                 _vm = DataContext as CodeBoxViewModel;

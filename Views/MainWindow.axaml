@@ -30,7 +30,11 @@
             </StackPanel>
             <StackPanel>
                 <views:FileBar DataContext="{Binding FileBarViewModel}"></views:FileBar>
-                <views:CodeBox DataContext="{Binding CodeBoxViewModel}" CaretLine="{Binding CaretLine}" CaretColumn="{Binding CaretColumn}" Lines="{Binding Lines}" Width="980" Height="670" Background="#1A1A1D"/>
+                <views:CodeBox DataContext="{Binding CodeBoxViewModel}"
+                               Lines="{Binding Lines}"
+                               CaretLine="{Binding CaretLine}"
+                               CaretColumn="{Binding CaretColumn}"
+                               Width="980" Height="670" Background="#1A1A1D"/>
             </StackPanel>
             <TextBox></TextBox>
         </StackPanel>

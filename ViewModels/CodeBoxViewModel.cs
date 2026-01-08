@@ -15,6 +15,8 @@ namespace BubaCode.ViewModels;
 public partial class CodeBoxViewModel : ViewModelBase
 {
     private FilesService _fileService;
+    private ShortcutRegistry _registry;
+    public Selection Selection;
     [ObservableProperty]
     private ObservableCollection<EditorLine> _lines;
     [ObservableProperty]
@@ -29,11 +31,13 @@ public partial class CodeBoxViewModel : ViewModelBase
         _fileService = fileService;
         _fileService.FileImported += Import;
         _fileService.GetSourceToExport = Export;
+        _registry = new ShortcutRegistry();
     }
 
     public void OnKeyDown(KeyEventArgs e)
     {
     var currentLine = Lines[CaretLine];
+    _registry.Execute(new KeyCombination(e), this);
         switch (e.Key)
             {
                 case Key.Up:
@@ -84,6 +88,9 @@ public partial class CodeBoxViewModel : ViewModelBase
                     e.Handled = true;
                     break;
                 default:
+                    
+                    
+                    
                     if (e.KeySymbol == null)
                     {
                         return;
@@ -102,6 +109,7 @@ public partial class CodeBoxViewModel : ViewModelBase
                     break;
             }    
     }
+
     
     public void SetCaret(int line, int column)
     {
@@ -117,6 +125,7 @@ public partial class CodeBoxViewModel : ViewModelBase
         }
         CaretColumn = column;
     }
+    
     
     private void MoveCaretX(int xOffset)
     {

@@ -22,7 +22,7 @@ public class CodeBoxMouseInputHandler
         _isHolding = true;
         System.Drawing.Point caretPosition = GetCaretPosition(pointerPosition.X, pointerPosition.Y);
         _selection = new Selection(caretPosition);
-        _viewModel.SetCaret(caretPosition.X, caretPosition.Y);
+        _viewModel.Selection = _selection;
     }
     public void OnPointerRealesed(Point pointerPosition)
     {
