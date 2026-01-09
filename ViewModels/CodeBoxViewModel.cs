@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
+using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
-using Avalonia;
 using Avalonia.Input;
 using BubaCode.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -16,169 +12,91 @@ public partial class CodeBoxViewModel : ViewModelBase
 {
     private FilesService _fileService;
     private ShortcutRegistry _registry;
-    public Selection Selection;
     [ObservableProperty]
-    private ObservableCollection<EditorLine> _lines;
+    public EditorText _text;
+    public Selection? Selection;
+    
     [ObservableProperty]
-    private int _caretColumn;
-    [ObservableProperty]
-    private int _caretLine;
+    private Caret _caret;
 
     public CodeBoxViewModel(FilesService fileService)
     {
-        Lines = [new EditorLine()];
-        CaretColumn = 0;
         _fileService = fileService;
         _fileService.FileImported += Import;
-        _fileService.GetSourceToExport = Export;
+        _fileService.GetSourceToExport = GetText;
         _registry = new ShortcutRegistry();
+        Caret = new Caret(this);
+        _text = new EditorText(ref _caret);
     }
 
     public void OnKeyDown(KeyEventArgs e)
     {
-    var currentLine = Lines[CaretLine];
+    // var currentLine = Lines[CaretLine];
     _registry.Execute(new KeyCombination(e), this);
         switch (e.Key)
             {
                 case Key.Up:
-                    MoveCaretY(-1);
+                    Caret.Line -= 1;
                     break;
                 case Key.Down:
-                    MoveCaretY(1);
+                    Caret.Line += 1;
                     break;
                 case Key.Left:
-                    MoveCaretX(-1);
+                    Caret.Column -= 1;
                     break;
                 case Key.Right:
-                    MoveCaretX(1);
+                    Caret.Column += 1;
                     break;
                 case Key.Enter:
-                    // 
-                    string shiftedFragment = currentLine.Text.Substring(CaretColumn);
-                    currentLine.Remove(CaretColumn, shiftedFragment.Length);
-                    Lines.Insert(CaretLine + 1, new EditorLine(shiftedFragment));
-
-                    CaretColumn = 0;
-                    CaretLine++;
+                    Text.HandleEnter();
                     break;
                 case Key.Back:
-                    if (CaretColumn == 0)
-                    {
-                        if (Lines.Count > 1)
-                        {
-                            Lines.RemoveAt(CaretLine);
-                            CaretLine--;
-                            currentLine = Lines[CaretLine];
-                            CaretColumn = currentLine.Length;
-                        }
-                        else
-                        {
-                            return;
-                        }
-                    }
-                    else
-                    {
-                        currentLine.Remove(currentLine.Length - 1, 1);
-                        CaretColumn -= 1;
-                    }
+                    Text.HandleBackspace();
                     break;
                 case Key.Tab:
-                    currentLine.Insert(CaretColumn, e.KeySymbol);
-                    CaretColumn += 1;
+                    Text.HandleTab();
                     e.Handled = true;
                     break;
                 default:
-                    
-                    
-                    
                     if (e.KeySymbol == null)
                     {
                         return;
                     }
-                    
-                    if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
-                    {
-                        currentLine.Insert(CaretColumn, e.KeySymbol.ToUpper());
-                    }
-                    else
-                    {
-                        currentLine.Insert(CaretColumn, e.KeySymbol);
-                    }
 
-                    CaretColumn += 1;
+                    Text.HandleTextKey(e);
                     break;
             }    
     }
 
-    
-    public void SetCaret(int line, int column)
+    public void ResetSelection()
     {
-        if (line >= Lines.Count || line < 0)
-        {
-            return;
-        }
-        CaretLine = line;
-
-        if (column > Lines[line].Length || column < 0)
-        {
-            column = Lines[line].Length;
-        }
-        CaretColumn = column;
+        if (Selection == null) return;
+        Selection.StartPosition = new Point(0, 0);
+        Selection.EndPosition = new Point(0, 0);
+        Selection = null;
     }
-    
-    
-    private void MoveCaretX(int xOffset)
+    public string GetText()
     {
-        if (xOffset == 0) return;
-
-        int lineLength = Lines[CaretLine].Length;
-
-        if (CaretColumn + xOffset <= lineLength && CaretColumn + xOffset >= 0)
-        {
-            CaretColumn += xOffset;
-        }
-    }
-    private void MoveCaretY(int yOffset)
-    {
-        if (yOffset == 0) return;
-
-        int linesCount = Lines.Count;
-
-        if (CaretLine + yOffset < linesCount && CaretLine + yOffset >= 0)
-        {
-            if (CaretColumn >= Lines[CaretLine + yOffset].Length)
-            {
-                CaretColumn = Lines[CaretLine + yOffset].Length;
-            }
-            CaretLine += yOffset;
-        }
-    }
-    public string Export()
-    {
-        StringBuilder result = new();
-        result.AppendJoin("\r\n", Lines);
-        return result.ToString();
+        return Text.ToString();
     }
     public void Import(Uri file)
     {
-        Lines.Clear();
-        CaretLine = 0;
+        Text.Clear();
+        Caret.Line = 0;
         
         IEnumerable<string> lines = File.ReadLines(file.LocalPath);
-        foreach (var line in lines)
+        foreach (string line in lines)
         {
-            Lines.Add(new EditorLine(line));
+            Text.InsertLine(line);
         }
 
-        if (Lines.Count == 0)
+        if (Text.LinesCount == 0)
         {
-            Lines.Add(new EditorLine(""));
-            CaretLine = 0;
-            CaretColumn = 0;
+            Text.InitializeEmpty();
             return;
         }
-        CaretLine = Lines.Count - 1;
-        CaretColumn = Lines[CaretLine].Length;
-            
+        Caret.Line = Text.LinesCount - 1;
+        Caret.Column = Text.GetLineLength(Caret.Line);
+
     }
 }

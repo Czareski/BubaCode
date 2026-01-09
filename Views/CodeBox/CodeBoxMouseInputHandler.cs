@@ -22,6 +22,7 @@ public class CodeBoxMouseInputHandler
         _isHolding = true;
         System.Drawing.Point caretPosition = GetCaretPosition(pointerPosition.X, pointerPosition.Y);
         _selection = new Selection(caretPosition);
+        _viewModel.Caret.SetPosition(caretPosition.X, caretPosition.Y);
         _viewModel.Selection = _selection;
     }
     public void OnPointerRealesed(Point pointerPosition)
@@ -37,7 +38,7 @@ public class CodeBoxMouseInputHandler
         if (_isHolding)
         {
             System.Drawing.Point caretPosition = GetCaretPosition(pointerPosition.X, pointerPosition.Y);
-            _viewModel.SetCaret(caretPosition.X, caretPosition.Y);
+            _viewModel.Caret.SetPosition(caretPosition.X, caretPosition.Y);
             _selection?.Update(caretPosition);
             _view.InvalidateVisual();
         }
@@ -46,7 +47,7 @@ public class CodeBoxMouseInputHandler
 
     private System.Drawing.Point GetCaretPosition(double x, double y)
     {
-        if (y < 0 || x < 0) return new System.Drawing.Point(_viewModel.CaretLine,  _viewModel.CaretColumn);
+        if (y < 0 || x < 0) return new System.Drawing.Point(_viewModel.Caret.Line,  _viewModel.Caret.Column);
         int line = (int)Math.Floor(y / _view.metrics.LineHeight);
         int column = 0;
         if (line >= _view.Lines.Count)

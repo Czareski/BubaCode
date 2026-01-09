@@ -11,8 +11,8 @@ public class PasteCommand : IShortcutCommand
     {
         string? clipboardText = ClipboardService.Instance?.GetTextAsync().Result;
         if (clipboardText == null) return;
-        sender.Lines[sender.CaretLine].Insert(sender.CaretColumn, clipboardText);
-        sender.SetCaret(sender.CaretLine, sender.CaretColumn + clipboardText.Length);
-        
+        sender.Text.InsertText(clipboardText);
+        sender.Caret.Column += clipboardText.Length;
+        sender.ResetSelection();
     }
 }

@@ -16,9 +16,9 @@ public class CopyCommand : IShortcutCommand
         for (int line = selection.StartPosition.X; line <= selection.EndPosition.X; line++)
         {
             var start = line == selection.StartPosition.X ? selection.StartPosition.Y : 0;
-            var end = line == selection.EndPosition.X ? selection.EndPosition.Y : sender.Lines[line].Length;
+            var end = line == selection.EndPosition.X ? selection.EndPosition.Y : sender.Text.GetLineLength(line);
             
-            copiedText.Append(sender.Lines[line].Text.Substring(start, end - start));
+            copiedText.Append(sender.Text.Lines[line].Text.Substring(start, end - start));
         }
 
         ClipboardService.Instance?.SetTextAsync(copiedText.ToString());
