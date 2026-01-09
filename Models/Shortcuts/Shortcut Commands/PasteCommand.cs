@@ -11,6 +11,10 @@ public class PasteCommand : IShortcutCommand
     {
         string? clipboardText = ClipboardService.Instance?.GetTextAsync().Result;
         if (clipboardText == null) return;
+        if (sender.Selection != null && sender.Selection.HasSelectedFragmentOfText())
+        {
+            sender.Text.RemoveFromSelection(sender.Selection);
+        }
         sender.Text.InsertText(clipboardText);
         sender.Caret.Column += clipboardText.Length;
         sender.ResetSelection();

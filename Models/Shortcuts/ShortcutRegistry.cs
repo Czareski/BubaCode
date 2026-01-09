@@ -19,6 +19,8 @@ public class ShortcutRegistry
     {
         Register(new KeyCombination(Key.C).Ctrl(true), new CopyCommand());
         Register(new KeyCombination(Key.V).Ctrl(true), new PasteCommand());
+        Register(new KeyCombination(Key.Left).Shift(true), new SelectLeftCommand());
+        Register(new KeyCombination(Key.Right).Shift(true), new SelectRightCommand());
     }
     
     public void Register(KeyCombination combination, IShortcutCommand shortcut)
@@ -26,14 +28,15 @@ public class ShortcutRegistry
         _shortcuts.TryAdd(combination, shortcut);
     }
 
-    public void Execute(KeyCombination combination, CodeBoxViewModel sender)
+    public bool Execute(KeyCombination combination, CodeBoxViewModel sender)
     {
         _shortcuts.TryGetValue(combination, out IShortcutCommand? shortcut);
         if (shortcut == null)
         {
-            return;
+            return false;
         }
         shortcut?.Execute(sender);
+        return true;
     }
     
     

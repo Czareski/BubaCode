@@ -13,7 +13,7 @@ public partial class CodeBoxViewModel : ViewModelBase
     private FilesService _fileService;
     private ShortcutRegistry _registry;
     [ObservableProperty]
-    public EditorText _text;
+    private EditorText _text;
     public Selection? Selection;
     
     [ObservableProperty]
@@ -26,46 +26,64 @@ public partial class CodeBoxViewModel : ViewModelBase
         _fileService.GetSourceToExport = GetText;
         _registry = new ShortcutRegistry();
         Caret = new Caret(this);
-        _text = new EditorText(ref _caret);
+        _text = new EditorText(this);
     }
 
     public void OnKeyDown(KeyEventArgs e)
     {
-    // var currentLine = Lines[CaretLine];
-    _registry.Execute(new KeyCombination(e), this);
-        switch (e.Key)
-            {
-                case Key.Up:
-                    Caret.Line -= 1;
-                    break;
-                case Key.Down:
-                    Caret.Line += 1;
-                    break;
-                case Key.Left:
-                    Caret.Column -= 1;
-                    break;
-                case Key.Right:
-                    Caret.Column += 1;
-                    break;
-                case Key.Enter:
-                    Text.HandleEnter();
-                    break;
-                case Key.Back:
-                    Text.HandleBackspace();
-                    break;
-                case Key.Tab:
-                    Text.HandleTab();
-                    e.Handled = true;
-                    break;
-                default:
-                    if (e.KeySymbol == null)
-                    {
-                        return;
-                    }
+        // var currentLine = Lines[CaretLine];
+        bool exectuedShortcut = _registry.Execute(new KeyCombination(e), this);
+        if (exectuedShortcut)
+        {
+            return;
+        }
 
-                    Text.HandleTextKey(e);
+
+        switch (e.Key)
+        {
+            case Key.Up:
+                Caret.Line -= 1;
+                break;
+            case Key.Down:
+                Caret.Line += 1;
+                break;
+            case Key.Left:
+                if (Selection != null)
+                {
+                    Caret.Column = Selection.StartPosition.Y;
                     break;
-            }    
+                }
+                Caret.Column -= 1;
+                break;
+            case Key.Right:
+                if (Selection != null)
+                {
+                    Caret.Column = Selection.EndPosition.Y;
+                    break;
+                }
+                Caret.Column += 1;
+                break;
+            case Key.Enter:
+                Text.HandleEnter();
+                break;
+            case Key.Back:
+                Text.HandleBackspace();
+                break;
+            case Key.Tab:
+                Text.HandleTab();
+                e.Handled = true;
+                break;
+            default:
+                if (e.KeySymbol == null)
+                {
+                    return;
+                }
+
+                Text.HandleTextKey(e);
+                break;
+        }
+
+        Selection = null;
     }
 
     public void ResetSelection()

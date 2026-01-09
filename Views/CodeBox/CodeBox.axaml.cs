@@ -60,7 +60,7 @@ public partial class CodeBox : Control
         private CodeBoxMouseInputHandler _inputHandler;
         private readonly DispatcherTimer _caretTimer;
         private bool _showCaret = false;
-        private readonly Typeface _typeface = new Typeface("JetBrains Mono");
+        private readonly Typeface _typeface = new Typeface("Consolas");
         private List<FormattedText> _formattedLines = new List<FormattedText>();
         
         public CodeBox()
@@ -250,10 +250,10 @@ public partial class CodeBox : Control
 
         private void RenderSelectionBackground(DrawingContext context)
         {
-            Selection selection = _inputHandler.GetSelection();
+            Selection? selection = _vm.Selection;
 
             if (selection == null) return;
-            
+            if (selection.HasSelectedFragmentOfText() == false) return;            
             int column = selection.StartPosition.Y;
             for (int i = 0; i <= selection.EndPosition.X - selection.StartPosition.X; i++)
             {

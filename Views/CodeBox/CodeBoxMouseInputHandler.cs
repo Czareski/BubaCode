@@ -29,8 +29,7 @@ public class CodeBoxMouseInputHandler
     {
         _isHolding = false;
         System.Drawing.Point caretPosition = GetCaretPosition(pointerPosition.X, pointerPosition.Y);
-        Debug.WriteLine("----START----- \r\n - line: {0} \r\n - column {1}", _selection.StartPosition.X, _selection.StartPosition.Y);
-        Debug.WriteLine("-----END------ \r\n - line: {0} \r\n - column {1}", _selection.EndPosition.X, _selection.EndPosition.Y);
+
     }
     
     public void OnPointerMoved(Point pointerPosition)
@@ -40,6 +39,7 @@ public class CodeBoxMouseInputHandler
             System.Drawing.Point caretPosition = GetCaretPosition(pointerPosition.X, pointerPosition.Y);
             _viewModel.Caret.SetPosition(caretPosition.X, caretPosition.Y);
             _selection?.Update(caretPosition);
+            
             _view.InvalidateVisual();
         }
         
@@ -68,15 +68,4 @@ public class CodeBoxMouseInputHandler
 
         return new System.Drawing.Point(line, column);
     }
-
-    public Selection GetSelection()
-    {
-        
-        if (_selection != null && _selection.StartPosition == _selection.EndPosition)
-        {
-            return null;
-        }
-        return _selection;
-    }
-    
 }

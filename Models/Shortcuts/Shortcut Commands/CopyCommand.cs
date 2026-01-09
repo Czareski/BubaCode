@@ -10,17 +10,10 @@ public class CopyCommand : IShortcutCommand
 {
     public void Execute(CodeBoxViewModel sender)
     {
-        Selection selection = sender.Selection;
+        Selection? selection = sender.Selection;
+        if (selection == null || !selection.HasSelectedFragmentOfText()) return;
         
-        StringBuilder copiedText = new();
-        for (int line = selection.StartPosition.X; line <= selection.EndPosition.X; line++)
-        {
-            var start = line == selection.StartPosition.X ? selection.StartPosition.Y : 0;
-            var end = line == selection.EndPosition.X ? selection.EndPosition.Y : sender.Text.GetLineLength(line);
-            
-            copiedText.Append(sender.Text.Lines[line].Text.Substring(start, end - start));
-        }
-
-        ClipboardService.Instance?.SetTextAsync(copiedText.ToString());
+        string copiedText = sender.Text.GetTextFromSelection(selection);
+        ClipboardService.Instance?.SetTextAsync(copiedText);
     }
 }

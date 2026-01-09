@@ -20,10 +20,11 @@ public class Selection
     public void Update(Point position)
     {
         _secondPosition = position;
-        if (this.HasSelectedFragmentOfText())
+        if (HasSelectedFragmentOfText())
         {
             UpdateSelectionBounds();
         }
+
     }
 
     public bool HasSelectedFragmentOfText()
