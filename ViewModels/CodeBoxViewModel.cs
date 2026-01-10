@@ -38,7 +38,7 @@ public partial class CodeBoxViewModel : ViewModelBase
             return;
         }
 
-
+        
         switch (e.Key)
         {
             case Key.Up:
@@ -50,6 +50,7 @@ public partial class CodeBoxViewModel : ViewModelBase
             case Key.Left:
                 if (Selection != null)
                 {
+                    Caret.Line = Selection.StartPosition.X;
                     Caret.Column = Selection.StartPosition.Y;
                     break;
                 }
@@ -58,6 +59,7 @@ public partial class CodeBoxViewModel : ViewModelBase
             case Key.Right:
                 if (Selection != null)
                 {
+                    Caret.Line = Selection.EndPosition.X;
                     Caret.Column = Selection.EndPosition.Y;
                     break;
                 }
@@ -67,6 +69,12 @@ public partial class CodeBoxViewModel : ViewModelBase
                 Text.HandleEnter();
                 break;
             case Key.Back:
+                if (Selection != null)
+                {
+                    Text.RemoveFromSelection(Selection);
+                    Selection = null;
+                    return;
+                }
                 Text.HandleBackspace();
                 break;
             case Key.Tab:
@@ -78,7 +86,11 @@ public partial class CodeBoxViewModel : ViewModelBase
                 {
                     return;
                 }
-
+                if (Selection != null)
+                {
+                    Text.RemoveFromSelection(Selection);
+                    Selection = null;
+                }
                 Text.HandleTextKey(e);
                 break;
         }
@@ -105,7 +117,7 @@ public partial class CodeBoxViewModel : ViewModelBase
         IEnumerable<string> lines = File.ReadLines(file.LocalPath);
         foreach (string line in lines)
         {
-            Text.InsertLine(line);
+            Text.ImportLine(line);
         }
 
         if (Text.LinesCount == 0)

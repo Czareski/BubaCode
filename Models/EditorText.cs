@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Avalonia.Controls.Shapes;
 using Avalonia.Input;
 using BubaCode.ViewModels;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -16,7 +17,8 @@ public partial class EditorText : ObservableObject
     [ObservableProperty]
     private ObservableCollection<EditorLine> _lines;
     private CodeBoxViewModel _vm;
-    private EditorLine CurrentLine =>Lines[_vm.Caret.Line]; // ?
+    private EditorLine CurrentLine =>Lines[_vm.Caret.Line];
+    private string _newLine = "\r\n";
     
     public EditorText(CodeBoxViewModel vm)
     {
@@ -44,20 +46,33 @@ public partial class EditorText : ObservableObject
         _vm.Caret.Column += 1;
     }
 
-    public void InsertLine(string line)
+    public void ImportLine(string line)
     {
         Lines.Add(new EditorLine(line));
+        _vm.Caret.Line += 1;
+        CurrentLine.Insert(CurrentLine.Length, '\n');
     }
-
+    
     public void InsertText(string text)
     {
-        CurrentLine.Insert(_vm.Caret.Column, text);
+        foreach (char c in text)
+        {
+            CurrentLine.Insert(_vm.Caret.Column, c);
+            _vm.Caret.Column += 1;
+            if (c == '\n')
+            {
+                Lines.Insert(_vm.Caret.Line + 1, new EditorLine(""));
+                _vm.Caret.Line++;
+                _vm.Caret.Column = 0;
+            }
+        }
     }
     
     public void HandleEnter()
     {
         string shiftedFragment = CurrentLine.Text.Substring(_vm.Caret.Column);
         CurrentLine.Remove(_vm.Caret.Column, shiftedFragment.Length);
+        CurrentLine.Insert(CurrentLine.Length, '\n');
         Lines.Insert(_vm.Caret.Line + 1, new EditorLine(shiftedFragment));
 
         _vm.Caret.Column = 0;
@@ -66,12 +81,6 @@ public partial class EditorText : ObservableObject
 
     public void HandleBackspace()
     {
-        if (_vm.Selection != null)
-        {
-            RemoveFromSelection(_vm.Selection);
-            _vm.Selection = null;
-            return;
-        }
         if (_vm.Caret.Column == 0)
         {
             if (Lines.Count > 1)
@@ -82,7 +91,7 @@ public partial class EditorText : ObservableObject
             }
         } else
         {
-            CurrentLine.Remove(CurrentLine.Length - 1, 1);
+            CurrentLine.Remove(_vm.Caret.Column - 1, 1);
             _vm.Caret.Column -= 1;
         }
     }
@@ -140,7 +149,8 @@ public partial class EditorText : ObservableObject
         StringBuilder result = new();
         foreach (EditorLine line in Lines)
         {
-            result.AppendJoin("\r\n", line.Text);
+            
+            result.Append(line.Text.Replace("\n", _newLine));
         }
         return result.ToString();
     }

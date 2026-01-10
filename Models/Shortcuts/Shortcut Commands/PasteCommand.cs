@@ -16,7 +16,6 @@ public class PasteCommand : IShortcutCommand
             sender.Text.RemoveFromSelection(sender.Selection);
         }
         sender.Text.InsertText(clipboardText);
-        sender.Caret.Column += clipboardText.Length;
         sender.ResetSelection();
     }
 }

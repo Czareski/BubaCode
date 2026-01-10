@@ -47,7 +47,7 @@ public class CodeBoxMouseInputHandler
 
     private System.Drawing.Point GetCaretPosition(double x, double y)
     {
-        if (y < 0 || x < 0) return new System.Drawing.Point(_viewModel.Caret.Line,  _viewModel.Caret.Column);
+
         int line = (int)Math.Floor(y / _view.metrics.LineHeight);
         int column = 0;
         if (line >= _view.Lines.Count)
@@ -55,9 +55,17 @@ public class CodeBoxMouseInputHandler
             line = _view.Lines.Count - 1;
         }
 
+        if (line < 0)
+        {
+            line = 0;
+        }
+
         if (x > _view.GetLineWidth(line))
         {
             column = _view.Lines[line].Length;
+        } else if (x < 0)
+        {
+            column = 0;
         }
         else
         {

@@ -33,6 +33,11 @@ public class EditorLine : INotifyPropertyChanged
         _line.Insert(index, value);
         OnPropertyChanged(nameof(Text));
     }
+    public void Insert(int index, char value)
+    {
+        _line.Insert(index, value);
+        OnPropertyChanged(nameof(Text));
+    }
 
     public StringBuilder Remove(int index, int count)
     {
@@ -46,4 +51,5 @@ public class EditorLine : INotifyPropertyChanged
         _line = newStringBuilder;
         OnPropertyChanged(nameof(Text));
     }
+    
 }

@@ -39,7 +39,7 @@ public class FilesService
             return;
         }
 
-    Import(currentFile);
+        Import(currentFile);
     }
 
     public void Import(Uri importedFile)
