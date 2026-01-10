@@ -61,7 +61,7 @@ public partial class CodeBox : Control
         private readonly DispatcherTimer _caretTimer;
         private bool _showCaret = false;
         private readonly Typeface _typeface = new Typeface("Consolas");
-        private List<FormattedText> _formattedLines = new List<FormattedText>();
+        private List<TextLayout> _formattedLines = new List<TextLayout>();
         
         public CodeBox()
         {
@@ -72,13 +72,7 @@ public partial class CodeBox : Control
             _caretTimer = new DispatcherTimer();
             _caretTimer.Interval = new TimeSpan(5000000);
             metrics = new TextMetrics(_typeface.GlyphTypeface, 16);
-            _formattedLines = new List<FormattedText>([new FormattedText(
-                "",
-                CultureInfo.CurrentCulture,
-                FlowDirection.LeftToRight,
-                _typeface,
-                16,
-                Brushes.White)]);
+            _formattedLines = new List<TextLayout>([CreateTextLayout(" ")]);
             
             AttachedToVisualTree += (_, _) =>
             {
@@ -87,6 +81,18 @@ public partial class CodeBox : Control
             };
             InitCaretTimer();
             
+        }
+
+        private TextLayout CreateTextLayout(string text)
+        {
+            return new TextLayout(
+                text, 
+                _typeface, 
+                16, 
+                Brushes.White, 
+                TextAlignment.Left, 
+                TextWrapping.NoWrap,
+                TextTrimming.None);
         }
 
         private void InitCaretTimer()
@@ -183,7 +189,7 @@ public partial class CodeBox : Control
                 }    
             }
 
-            _formattedLines = new List<FormattedText>();
+            _formattedLines = new List<TextLayout>();
             if (e.NewItems != null)
             {
                 foreach (EditorLine newLine in e.NewItems)
@@ -194,13 +200,7 @@ public partial class CodeBox : Control
 
             foreach (EditorLine line in Lines)
             {
-                _formattedLines.Add(new FormattedText(
-                    line.Text,
-                    CultureInfo.CurrentCulture,
-                    FlowDirection.LeftToRight,
-                    _typeface,
-                    16,
-                    Brushes.White));
+                _formattedLines.Add(CreateTextLayout(line.Text));
             }
             InvalidateVisual();
         }
@@ -210,14 +210,7 @@ public partial class CodeBox : Control
             {
                 var index = Lines!.IndexOf(line);
                 
-                var brush = Brushes.White;
-                _formattedLines[index] = new FormattedText(
-                    line.Text,
-                    CultureInfo.CurrentCulture,
-                    FlowDirection.LeftToRight,
-                    _typeface,
-                    16,
-                    brush);
+                _formattedLines[index] = CreateTextLayout(line.Text);
             }
             InvalidateVisual();
         }
@@ -233,7 +226,8 @@ public partial class CodeBox : Control
                 var renderSize = Bounds.Size;
                 context.FillRectangle(background, new Rect(renderSize));
             }
-
+            
+            
             RenderSelectionBackground(context);
             
             
@@ -270,11 +264,11 @@ public partial class CodeBox : Control
         }
         private void RenderLine(DrawingContext context, int index)
         {
-            context.DrawText(_formattedLines[index], new Point(0, index * metrics.LineHeight));
+            _formattedLines[index].Draw(context, new Point(0, index * metrics.LineHeight));
         }
         private void RenderCaret(DrawingContext context, int lineIndex)
         {
-            double carretX = Lines[lineIndex].Length > 0 ? CaretColumn * _formattedLines[lineIndex].Width / Lines[lineIndex].Length : 1;
+            double carretX = Lines[lineIndex].Length > 0 ? CaretColumn * _formattedLines[lineIndex].WidthIncludingTrailingWhitespace / Lines[lineIndex].Length : 1;
             context.DrawRectangle(new Pen(Brushes.Red), new Rect(new Point(carretX, lineIndex * metrics.LineHeight), new Point(carretX + 1, lineIndex * metrics.LineHeight + metrics.LineHeight)));
         }
 

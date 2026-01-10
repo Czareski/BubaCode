@@ -120,7 +120,7 @@ public partial class EditorText : ObservableObject
             var end = line == selection.EndPosition.X ? selection.EndPosition.Y : GetLineLength(line);
             
             var removed = Lines[line].Text.Remove(start, end - start);
-            Lines[line] = new EditorLine(removed); 
+            Lines[line].Set(new StringBuilder(removed)); 
         }
         _vm.Caret.Line = selection.StartPosition.X;
         _vm.Caret.Column = selection.StartPosition.Y;
