@@ -138,7 +138,10 @@ public partial class EditorText : ObservableObject
     public override string ToString()
     {
         StringBuilder result = new();
-        result.AppendJoin("\r\n", Lines);
+        foreach (EditorLine line in Lines)
+        {
+            result.AppendJoin("\r\n", line.Text);
+        }
         return result.ToString();
     }
 }

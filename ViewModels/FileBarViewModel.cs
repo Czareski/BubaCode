@@ -11,9 +11,9 @@ namespace BubaCode.ViewModels;
 public partial class FileBarViewModel : ViewModelBase
 {
     [ObservableProperty]
-    private string _fileName = "some Name";
+    private string _fileName = "New File";
 
-    [ObservableProperty] private string _filePath = "some Path";
+    [ObservableProperty] private string _filePath = "";
     private FilesService _fileService;
     public FileBarViewModel(FilesService fileService)
     {
