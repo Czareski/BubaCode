@@ -62,9 +62,9 @@ public partial class CodeBox : Control
     private CodeBoxViewModel _vm;
     private CodeBoxMouseInputHandler _inputHandler;
     private readonly DispatcherTimer _caretTimer;
-    private bool _showCaret = false;
-    private readonly Typeface _typeface = new Typeface("Consolas");
-    private List<TextLayout> _formattedLines = new List<TextLayout>();
+    private bool _showCaret;
+    private readonly Typeface _typeface = new("Consolas");
+    private List<TextLayout> _formattedLines;
 
     public CodeBox()
     {
@@ -83,8 +83,23 @@ public partial class CodeBox : Control
         InitCaretTimer();
     }
 
+    protected override void OnDataContextChanged(EventArgs e)
+    {
+        base.OnDataContextChanged(e);
+        _vm = DataContext as CodeBoxViewModel;
+        _inputHandler = new CodeBoxMouseInputHandler(_vm, this);
+        _formattedLines.Clear();
+        foreach (EditorLine line in _vm.Text.Lines)
+        {
+            _formattedLines.Add(CreateTextLayout(line.Text));
+        }
+        
+        InvalidateVisual();
+    }
+
     private TextLayout CreateTextLayout(string text)
     {
+        
         return new TextLayout(
             text,
             _typeface,
@@ -92,7 +107,8 @@ public partial class CodeBox : Control
             Brushes.White,
             TextAlignment.Left,
             TextWrapping.NoWrap,
-            TextTrimming.None);
+            TextTrimming.None
+            );
     }
 
     private void InitCaretTimer()
@@ -260,10 +276,10 @@ public partial class CodeBox : Control
         for (int i = 0; i <= selection.EndPosition.X - selection.StartPosition.X; i++)
         {
             var line = selection.StartPosition.X + i;
-            var left = column * _formattedLines[line].Width / Lines[line].Length;
+            var left = column * _formattedLines[line].Width / Lines[line].LengthWithoutNewLine;
             left = (left < 0) ? 0 : left;
             var right = (selection.EndPosition.X == line)
-                ? selection.EndPosition.Y * _formattedLines[line].Width / Lines[line].Length
+                ? selection.EndPosition.Y * _formattedLines[line].Width / Lines[line].LengthWithoutNewLine
                 : _formattedLines[line].Width;
             var top = metrics.LineHeight * line;
             var bottom = top + metrics.LineHeight;
@@ -281,7 +297,7 @@ public partial class CodeBox : Control
     private void RenderCaret(DrawingContext context, int lineIndex)
     {
         double carretX = Lines[lineIndex].Length > 0
-            ? CaretColumn * _formattedLines[lineIndex].WidthIncludingTrailingWhitespace / Lines[lineIndex].Length
+            ? CaretColumn * _formattedLines[lineIndex].WidthIncludingTrailingWhitespace / Lines[lineIndex].LengthWithoutNewLine
             : 1;
         context.DrawRectangle(new Pen(Brushes.Red),
             new Rect(new Point(carretX, lineIndex * metrics.LineHeight),

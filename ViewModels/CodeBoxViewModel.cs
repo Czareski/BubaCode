@@ -4,21 +4,22 @@ using System.Drawing;
 using System.IO;
 using Avalonia.Input;
 using BubaCode.Models;
+using BubaCode.Models.Commands;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace BubaCode.ViewModels;
 
 public partial class CodeBoxViewModel : ViewModelBase
 {
-    private FilesService _fileService;
-    private ShortcutRegistry _registry;
     [ObservableProperty]
     private EditorText _text;
-    public Selection? Selection;
-    
     [ObservableProperty]
     private Caret _caret;
-
+    public Selection? Selection;
+    private Actions _actions;
+    private FilesService _fileService;
+    private ShortcutRegistry _registry;
+    private bool _imported;
     public CodeBoxViewModel(FilesService fileService)
     {
         _fileService = fileService;
@@ -27,6 +28,7 @@ public partial class CodeBoxViewModel : ViewModelBase
         _registry = new ShortcutRegistry();
         Caret = new Caret(this);
         _text = new EditorText(this);
+        _actions =  new Actions(this);
     }
 
     public void OnKeyDown(KeyEventArgs e)
@@ -38,7 +40,6 @@ public partial class CodeBoxViewModel : ViewModelBase
             return;
         }
 
-        
         switch (e.Key)
         {
             case Key.Up:
@@ -71,30 +72,24 @@ public partial class CodeBoxViewModel : ViewModelBase
             case Key.Back:
                 if (Selection != null)
                 {
-                    Text.RemoveFromSelection(Selection);
+                    _actions.Do(new RemoveFromSelectionCommand());
                     Selection = null;
                     return;
                 }
-                Text.HandleBackspace();
+                _actions.Do(new RemoveCharacterCommand());
+                
                 break;
             case Key.Tab:
                 Text.HandleTab();
                 e.Handled = true;
                 break;
+            case Key.LeftCtrl:
+                return;
             default:
-                if (e.KeySymbol == null)
-                {
-                    return;
-                }
-                if (Selection != null)
-                {
-                    Text.RemoveFromSelection(Selection);
-                    Selection = null;
-                }
-                Text.HandleTextKey(e);
+                _actions.Do(new TypeCharacterCommand(e));
                 break;
         }
-
+        _fileService.SetFileDirty?.Invoke(true);
         Selection = null;
     }
 
@@ -111,6 +106,10 @@ public partial class CodeBoxViewModel : ViewModelBase
     }
     public void Import(Uri file)
     {
+        if (_imported)
+        {
+            return;
+        }
         Text.Clear();
         Caret.Line = 0;
         
@@ -127,6 +126,15 @@ public partial class CodeBoxViewModel : ViewModelBase
         }
         Caret.Line = Text.LinesCount - 1;
         Caret.Column = Text.GetLineLength(Caret.Line);
+        _imported = true;
+    }
+    public Actions GetActions()
+    {
+        return _actions;
+    }
 
+    public void UnsubscribeToFileImported()
+    {
+        _fileService.FileImported -= Import;
     }
 }

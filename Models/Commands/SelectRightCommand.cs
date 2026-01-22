@@ -3,16 +3,20 @@ using BubaCode.ViewModels;
 
 namespace BubaCode.Models.Shortcut_Commands;
 
-public class SelectLeftCommand : IShortcutCommand
+public class SelectRightCommand : ICommand
 {
-    public void Execute(CodeBoxViewModel sender)
+    public ActionResult Execute(CodeBoxViewModel sender)
     {
         if (sender.Selection == null)
         {
             sender.Selection = new Selection(new Point(sender.Caret.Line, sender.Caret.Column));
         }
-        sender.Caret.Column -= 1;
+        sender.Caret.Column += 1;
         sender.Selection.Update(new Point(sender.Caret.Line, sender.Caret.Column));
-        
+        return ActionResult.AddToStack;
+    }
+    public void Undo(CodeBoxViewModel sender)
+    {
+        return;
     }
 }

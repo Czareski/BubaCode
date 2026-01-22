@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using Avalonia.Controls;
+using BubaCode.ViewModels.FileExplorer;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -15,6 +16,7 @@ public partial class FileBarViewModel : ViewModelBase
 
     [ObservableProperty] private string _filePath = "";
     private FilesService _fileService;
+    
     public FileBarViewModel(FilesService fileService)
     {
         _fileService = fileService;
@@ -38,4 +40,5 @@ public partial class FileBarViewModel : ViewModelBase
         FileName = Path.GetFileName(importedFile.LocalPath);
         FilePath = importedFile.LocalPath.Remove(importedFile.LocalPath.Length - FileName.Length).Replace('\\', '/');
     }
+    
 }

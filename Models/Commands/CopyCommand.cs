@@ -6,14 +6,22 @@ using BubaCode.ViewModels;
 
 namespace BubaCode.Models.Shortcut_Commands;
 
-public class CopyCommand : IShortcutCommand
+public class CopyCommand : ICommand
 {
-    public void Execute(CodeBoxViewModel sender)
+    ActionResult ICommand.Execute(CodeBoxViewModel sender)
     {
         Selection? selection = sender.Selection;
-        if (selection == null || !selection.HasSelectedFragmentOfText()) return;
+        if (selection == null || !selection.HasSelectedFragmentOfText()) return ActionResult.DontAddToStack;
         
         string copiedText = sender.Text.GetTextFromSelection(selection);
         ClipboardService.Instance?.SetTextAsync(copiedText);
+        return ActionResult.DontAddToStack;
     }
+    
+    public void Undo(CodeBoxViewModel sender)
+    {
+        return;
+    }
+
+    
 }

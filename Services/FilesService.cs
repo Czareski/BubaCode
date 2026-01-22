@@ -6,14 +6,17 @@ using System.Text;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace BubaCode.ViewModels;
 
 public class FilesService
 {
-    
-    private Uri currentFile;
+     
+    public Uri CurrentFile;
     public event Action<Uri>? FileImported;
+    public event Action<DirectoryInfo>? FolderOpened;
+    public Action<bool>? SetFileDirty;
     public Func<string>? GetSourceToExport;
     private IErrorService _errorService;
 
@@ -21,8 +24,15 @@ public class FilesService
     {
         _errorService = errorService;
     }
+
+    public void ClearFileImportedListners()
+    {
+        FileImported = null;
+    }
     public async Task PickFileAsync(Window window)
     {
+        OpenFolder(window);
+        return;
         var files = await window.StorageProvider.OpenFilePickerAsync(
             new FilePickerOpenOptions
             {
@@ -31,7 +41,7 @@ public class FilesService
 
         try
         {
-            currentFile = files.FirstOrDefault().Path;
+            CurrentFile = files.FirstOrDefault().Path;
         }
         catch (NullReferenceException ex)
         {
@@ -39,15 +49,14 @@ public class FilesService
             return;
         }
 
-        Import(currentFile);
+        Import(CurrentFile);
     }
 
     public void Import(Uri importedFile)
     {
         FileImported?.Invoke(importedFile);
     }
-
-
+    
     public void Export()
     {
         string text = GetSourceToExport?.Invoke();
@@ -57,18 +66,41 @@ public class FilesService
             return;
         }
 
-        if (currentFile == null)
+        if (CurrentFile == null)
         {
             _errorService.ReportError("No file selected");
             return;
         }
-        FileStream stream = File.Open(currentFile.LocalPath, FileMode.OpenOrCreate);
+        FileStream stream = File.Open(CurrentFile.LocalPath, FileMode.OpenOrCreate);
         foreach (byte character in text.ToString())
         {
             stream.WriteByte(character);
         }
         stream.Close();
+        SetFileDirty?.Invoke(false);
+    }
+
+    public async Task OpenFolder(Window window)
+    {
+        var folders = await window.StorageProvider.OpenFolderPickerAsync(
+            new FolderPickerOpenOptions
+            {
+                AllowMultiple = false
+            });
+        try
+        {
+            var path = folders.FirstOrDefault().Path;
+            DirectoryInfo directory = new DirectoryInfo(path.AbsolutePath);
+            FolderOpened?.Invoke(directory);           
+        }
+        catch (Exception ex)
+        {
+            _errorService.ReportError("No folder selected");
+            Debug.WriteLine(ex.Message);
+            return;
+        }
     }
     
     
+
 }

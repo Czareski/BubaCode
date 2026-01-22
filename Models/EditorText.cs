@@ -33,19 +33,6 @@ public partial class EditorText : ObservableObject
         _vm.Caret.Column = 0;
     }
 
-    public void HandleTextKey(KeyEventArgs eventArgs)
-    {
-        if (eventArgs.KeyModifiers.HasFlag(KeyModifiers.Shift))
-        {
-            CurrentLine.Insert(_vm.Caret.Column, eventArgs.KeySymbol.ToUpper());
-        }
-        else
-        {
-            CurrentLine.Insert(_vm.Caret.Column, eventArgs.KeySymbol);
-        }
-        _vm.Caret.Column += 1;
-    }
-
     public void ImportLine(string line)
     {
         Lines.Add(new EditorLine(line));
@@ -57,14 +44,18 @@ public partial class EditorText : ObservableObject
     {
         foreach (char c in text)
         {
-            CurrentLine.Insert(_vm.Caret.Column, c);
-            _vm.Caret.Column += 1;
-            if (c == '\n')
-            {
-                Lines.Insert(_vm.Caret.Line + 1, new EditorLine(""));
-                _vm.Caret.Line++;
-                _vm.Caret.Column = 0;
-            }
+            InsertChar(c);
+        }
+    }
+    public void InsertChar(char c)
+    {
+        CurrentLine.Insert(_vm.Caret.Column, c);
+        _vm.Caret.Column += 1;
+        if (c == '\n')
+        {
+            Lines.Insert(_vm.Caret.Line + 1, new EditorLine(""));
+            _vm.Caret.Line++;
+            _vm.Caret.Column = 0;
         }
     }
     
@@ -79,7 +70,7 @@ public partial class EditorText : ObservableObject
         _vm.Caret.Line++;
     }
 
-    public void HandleBackspace()
+    public char? HandleBackspace()
     {
         if (_vm.Caret.Column == 0)
         {
@@ -88,12 +79,14 @@ public partial class EditorText : ObservableObject
                 Lines.RemoveAt(_vm.Caret.Line);
                 _vm.Caret.Line--;
                 _vm.Caret.Column = CurrentLine.Length;
+                return '\n';
             }
-        } else
-        {
-            CurrentLine.Remove(_vm.Caret.Column - 1, 1);
-            _vm.Caret.Column -= 1;
+            return null;
         }
+        var removed = CurrentLine.Text[_vm.Caret.Column - 1]; 
+        CurrentLine.Remove(_vm.Caret.Column - 1, 1);
+        _vm.Caret.Column -= 1;
+        return removed;
     }
 
     public void HandleTab()
@@ -121,18 +114,21 @@ public partial class EditorText : ObservableObject
         return result.ToString();
     }
 
-    public void RemoveFromSelection(Selection selection)
+    public string RemoveSelected(Selection selection)
     {
+        string result = "";
         for (int line = selection.StartPosition.X; line <= selection.EndPosition.X; line++)
         {
             var start = line == selection.StartPosition.X ? selection.StartPosition.Y : 0;
             var end = line == selection.EndPosition.X ? selection.EndPosition.Y : GetLineLength(line);
             
+            result += Lines[line].Text.Substring(start, end - start);
             var removed = Lines[line].Text.Remove(start, end - start);
             Lines[line].Set(new StringBuilder(removed)); 
         }
         _vm.Caret.Line = selection.StartPosition.X;
         _vm.Caret.Column = selection.StartPosition.Y;
+        return result;
     }
     
     public int GetLineLength(int line)
@@ -143,6 +139,7 @@ public partial class EditorText : ObservableObject
         } 
         return Lines[line].Length;
     }
+    
 
     public override string ToString()
     {

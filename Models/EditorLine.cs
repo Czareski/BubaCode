@@ -18,11 +18,19 @@ public class EditorLine : INotifyPropertyChanged
     private StringBuilder _line;
     public string Text => _line.ToString();
     public int Length => _line.Length;
-    
-    public EditorLine()
+    public int LengthWithoutNewLine
     {
-        _line = new StringBuilder();
+        get
+        {
+            if (_line[^1] == '\n')
+            {
+                return _line.Length - 1;
+            }
+
+            return Length;
+        }
     }
+    
     public EditorLine(string value)
     {
         _line = new StringBuilder(value);

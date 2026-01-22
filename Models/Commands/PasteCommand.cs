@@ -5,17 +5,23 @@ using BubaCode.ViewModels;
 
 namespace BubaCode.Models.Shortcut_Commands;
 
-public class PasteCommand : IShortcutCommand
+public class PasteCommand : ICommand
 {
-    public void Execute(CodeBoxViewModel sender)
+    public ActionResult Execute(CodeBoxViewModel sender)
     {
         string? clipboardText = ClipboardService.Instance?.GetTextAsync().Result;
-        if (clipboardText == null) return;
+        if (clipboardText == null) return ActionResult.DontAddToStack;
         if (sender.Selection != null && sender.Selection.HasSelectedFragmentOfText())
         {
-            sender.Text.RemoveFromSelection(sender.Selection);
+            sender.Text.RemoveSelected(sender.Selection);
         }
         sender.Text.InsertText(clipboardText);
         sender.ResetSelection();
+        
+        return ActionResult.DontAddToStack;
+    }
+    public void Undo(CodeBoxViewModel sender)
+    {
+        throw new System.NotImplementedException();
     }
 }

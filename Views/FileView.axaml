@@ -1,0 +1,31 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:BubaCode.ViewModels.FileExplorer"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="BubaCode.Views.FileView"
+             x:DataType="vm:FileViewModel">
+    <Grid ColumnDefinitions="Auto, Auto, Auto" Margin=" 0 0 0 0">
+        <Path Grid.Column="0" 
+              Margin="0 0 3 0"
+              Data="{StaticResource radio_button_regular}" 
+              Stretch="Uniform" 
+              Fill="White" 
+              Width="8" Height="8"
+              VerticalAlignment="Center"
+              Opacity="{Binding Dirty}"/>
+        <Path Grid.Column="1" 
+              Data="{StaticResource document_regular}" 
+              Stretch="Uniform" 
+              Fill="White" 
+              Width="15" Height="15"
+              VerticalAlignment="Center"/>
+        <TextBlock Grid.Column="2"
+                   Text="{Binding FileInfo.Name}" 
+                   Margin="7 10 10 10"
+                   Foreground="White" 
+                   VerticalAlignment="Center"
+        />
+    </Grid>
+</UserControl>
