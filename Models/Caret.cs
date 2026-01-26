@@ -1,4 +1,5 @@
-﻿using BubaCode.ViewModels;
+﻿using BubaCode.Models.Commands;
+using BubaCode.ViewModels;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace BubaCode.Models;
@@ -56,5 +57,11 @@ public partial class Caret : ObservableObject
     {
         Line = line;
         Column = column;
+    }
+
+    public void SetPosition(CaretPosition position)
+    {
+        Line = position.Line;
+        Column = position.Column;
     }
 }

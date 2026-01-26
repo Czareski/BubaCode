@@ -12,8 +12,7 @@ public class Actions
     private Stack<ICommand> _undoCommands;
     private readonly DispatcherTimer _typingTimer;
     private CodeBoxViewModel _vm;
-    private ICommand _lastCommand;
-    public ICommand LastCommand => _lastCommand;
+    public ICommand? LastCommand => _actions.Count > 0 ? _actions.Peek() : null;
     
     public Actions(CodeBoxViewModel vm)
     {
@@ -31,7 +30,6 @@ public class Actions
         if (result == ActionResult.AddToStack)
         {
             _actions.Push(command);
-            _lastCommand = command;
             _undoCommands.Clear();
         }
     }
@@ -59,5 +57,10 @@ public class Actions
     {
         if (_actions.Count == 0) { return null; }
         return _actions.Pop();
+    }
+
+    public void PushWithoutDoing(ICommand command)
+    {
+        _actions.Push(command);
     }
 }

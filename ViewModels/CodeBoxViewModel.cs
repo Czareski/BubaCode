@@ -67,7 +67,7 @@ public partial class CodeBoxViewModel : ViewModelBase
                 Caret.Column += 1;
                 break;
             case Key.Enter:
-                Text.HandleEnter();
+                _actions.Do(new EnterCommand());
                 break;
             case Key.Back:
                 if (Selection != null)

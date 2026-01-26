@@ -2,12 +2,14 @@
 
 namespace BubaCode.Models.Commands;
 
-public class RemoveCharacterCommand : ICommand
+public class RemoveCharacterCommand : TextEditingCommand, ICommand
 {
     private char? removedCharacter;
     public ActionResult Execute(CodeBoxViewModel sender)
     {
+        OnExecute(sender);
         removedCharacter = sender.Text.HandleBackspace();
+        MakeCaretAfterSnapshot(sender);
         if (removedCharacter == null)
         {
             return ActionResult.DontAddToStack;
@@ -18,7 +20,7 @@ public class RemoveCharacterCommand : ICommand
     public void Undo(CodeBoxViewModel sender)
     {
         if (removedCharacter == null) return;
-        
+        OnUndo(sender);
         sender.Text.InsertChar((char)removedCharacter);
     }
 }

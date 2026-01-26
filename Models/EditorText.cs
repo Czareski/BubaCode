@@ -69,6 +69,23 @@ public partial class EditorText : ObservableObject
         _vm.Caret.Column = 0;
         _vm.Caret.Line++;
     }
+    public void UndoHandleEnter()
+    {
+        int currentLineIndex = _vm.Caret.Line;
+        int previousLineIndex = currentLineIndex - 1;
+        if (previousLineIndex < 0) return; // Zabezpieczenie
+        EditorLine newLine = Lines[currentLineIndex];
+        EditorLine prevLine = Lines[previousLineIndex];
+        string shiftedText = newLine.Text;
+        if (prevLine.Text.EndsWith("\n"))
+        {
+            prevLine.Remove(prevLine.Length - 1, 1);
+        }
+        _vm.Caret.Line = previousLineIndex;
+        _vm.Caret.Column = prevLine.Length;
+        prevLine.Insert(prevLine.Length, shiftedText);
+        Lines.RemoveAt(currentLineIndex);
+    }
 
     public char? HandleBackspace()
     {

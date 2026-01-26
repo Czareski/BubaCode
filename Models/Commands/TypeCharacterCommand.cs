@@ -1,49 +1,56 @@
 ﻿using System;
+using System.Drawing;
 using Avalonia.Input;
 using Avalonia.Threading;
 using BubaCode.ViewModels;
 
 namespace BubaCode.Models.Commands;
 
-public class TypeCharacterCommand : ITypeCommand
+public class TypeCharacterCommand : TextEditingCommand, ITypeCommand
 {
+   
     private KeyEventArgs? _keyEventArgs;
     private DispatcherTimer _timer;
-    private bool _canBeConcated = true;
     public TypeCharacterCommand(KeyEventArgs keyEventArgs)
     {
         _keyEventArgs = keyEventArgs;
            
         _timer = new DispatcherTimer();
-        _timer.Interval = new TimeSpan(0, 0, 0, 0, 700);
+        _timer.Interval = new TimeSpan(0, 0, 0, 0, 1000);
         _timer.Tick += (_, _) =>
         {
-            _canBeConcated = false;
+            _timer.Stop();
         };
     }
     public ActionResult Execute(CodeBoxViewModel sender)
     {
+        OnExecute(sender);
         if (_keyEventArgs == null || _keyEventArgs.KeySymbol == null)
         {
             return ActionResult.DontAddToStack;
         }
-
-        if (TryConcating(sender))
-        {
-            return ActionResult.DontAddToStack;
-        }
-        
         if (sender.Selection != null)
         {
             sender.Text.RemoveSelected(sender.Selection);
             sender.Selection = null;
         }
         sender.Text.InsertText(GetTypedValue());
+        
+        MakeCaretAfterSnapshot(sender);
+        
+        if (TryConcating(sender))
+        {
+            return ActionResult.DontAddToStack;
+        }
+        
+        _timer.Start();
         return ActionResult.AddToStack;
+        
     }
 
     public void Undo(CodeBoxViewModel sender)
     {
+        OnUndo(sender);
         sender.Text.HandleBackspace();
     }
 
@@ -58,24 +65,26 @@ public class TypeCharacterCommand : ITypeCommand
 
     public bool CanBeConcated()
     {
-        return _canBeConcated;
+        return _timer.IsEnabled;
     }
-
+    // this class is concating
     public void Concat(CodeBoxViewModel vm, ITypeCommand other)
     {
         _timer.Stop();
-        string concatedValue =  GetTypedValue() + other.GetTypedValue();
-        TypeTextCommand concatedCommand = new TypeTextCommand(concatedValue, _timer.Interval);
+        vm.GetActions().RemoveFromTop(); // itself
+        string concatedValue = GetTypedValue() + other.GetTypedValue();
+        TypeTextCommand concatedCommand = new TypeTextCommand(concatedValue, vm);
         
-        vm.GetActions().Do(concatedCommand);
+        vm.GetActions().PushWithoutDoing(concatedCommand);
     }
-
+    
+    // last command is concating
     public bool TryConcating(CodeBoxViewModel vm)
     {
-        if (vm.GetActions().LastCommand is ITypeCommand)
+        if (vm.GetActions().LastCommand != null && vm.GetActions().LastCommand is ITypeCommand)
         {
-            var typeCommand = vm.GetActions().RemoveFromTop() as ITypeCommand;
-            if (typeCommand!.CanBeConcated())
+            ITypeCommand typeCommand = (ITypeCommand) vm.GetActions().LastCommand;
+            if (typeCommand.CanBeConcated())
             {
                 typeCommand.Concat(vm, this);
                 return true;
