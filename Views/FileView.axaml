@@ -22,7 +22,7 @@
               Width="15" Height="15"
               VerticalAlignment="Center"/>
         <TextBlock Grid.Column="2"
-                   Text="{Binding FileInfo.Name}" 
+                   Text="{Binding Name}" 
                    Margin="7 10 10 10"
                    Foreground="White" 
                    VerticalAlignment="Center"

@@ -21,20 +21,31 @@ public partial class MainWindowViewModel : ViewModelBase
     private FileExplorerViewModel _fileExplorerViewModel;
     private FilesService? _fileService;
     private IErrorService? _errorService;
-    
+    private Dictionary<Uri, CodeBoxViewModel> _fileCodeBoxCache = new();
     public MainWindowViewModel()
     {
         _errorService = new ErrorService();
         _errorViewModel = new ErrorViewModel(_errorService);
-        
         _fileService = new FilesService(_errorService);
         _fileBarViewModel = new FileBarViewModel(_fileService);
         _codeBoxViewModel = new CodeBoxViewModel(_fileService);
+        
         _fileExplorerViewModel = new FileExplorerViewModel(_fileService, this);
+        
     }
-
-    public void SetCodeBoxViewModel(CodeBoxViewModel codeBoxViewModel)
+    public void SetCodeBoxViewModel(Uri uri)
     {
-        CodeBoxViewModel = codeBoxViewModel;
+        CodeBoxViewModel.UnsubscribeToFileImported();
+        if (_fileCodeBoxCache.ContainsKey(uri))
+        {
+            CodeBoxViewModel = _fileCodeBoxCache[uri];
+        }
+        else
+        {
+            CodeBoxViewModel = new CodeBoxViewModel(_fileService);
+            
+            _fileCodeBoxCache[uri] = CodeBoxViewModel;
+        }
+        
     }
 }

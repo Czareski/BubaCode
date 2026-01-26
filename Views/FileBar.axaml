@@ -7,7 +7,7 @@
              x:Class="BubaCode.Views.FileBar"
              x:DataType="vm:FileBarViewModel">
     
-    <StackPanel Width="1280" Height="50" Background="#161618" FlowDirection="RightToLeft" Orientation="Horizontal">
+    <StackPanel Height="50" Background="#161618" FlowDirection="RightToLeft" Orientation="Horizontal">
         <Button Foreground="Wheat" Width="30" Height="30" Margin="15  0 0 0" Command="{Binding Open }" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}">
             <Path Data="{StaticResource folder_open_regular} "
                   Stroke="White"

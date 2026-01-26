@@ -2,73 +2,95 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+
 using BubaCode.Models.FilesExplorer;
+using BubaCode.Utils;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace BubaCode.ViewModels.FileExplorer;
 
 public partial class FolderViewModel : ViewModelBase, IFileExplorerItem
 {
-    [ObservableProperty]
-    private DirectoryInfo _directoryInfo;
+    private DirectoryInfo _folderInfo;
     [ObservableProperty]
     private bool _isExpanded = true;
     [ObservableProperty]
-    private ObservableCollection<IFileExplorerItem> _children = new ObservableCollection<IFileExplorerItem>();
-    
-    public FolderViewModel(DirectoryInfo directoryInfo)
-    {
-        DirectoryInfo = directoryInfo;
-        PopulateChildren();
-    }
+    private ObservableCollection<IFileExplorerItem> _children = new();
+    [ObservableProperty] private string _name;
+    [ObservableProperty] private string _fontWeight = "Normal";
+    private bool _isRoot;
 
-    public async Task PopulateChildren()
+    public FolderViewModel(DirectoryInfo directoryInfo, FileExplorerService fileExplorer, bool isRoot = false)
     {
-        // Sprawdzaj pole prywatne, jeśli to w nie wpisujesz dane, 
-        // lub upewnij się, że używasz generowanej właściwości.
-        if (_directoryInfo == null) 
-        {
-            Debug.WriteLine("Pole _directoryInfo jest nullem!");
-            return;
-        }
+        _folderInfo = directoryInfo;
+        _name =  directoryInfo.Name;
+        _isRoot = isRoot;
+        PopulateChildren(fileExplorer);
         
-        // Odśwież stan obiektu, aby upewnić się, że Exists jest aktualne
-        _directoryInfo.Refresh(); 
-
-        if (!_directoryInfo.Exists) 
+        if (isRoot)
         {
-            Debug.WriteLine("Folder fizycznie nie istnieje na dysku!");
+            _fontWeight = "Bold";
+            _name = _name.ToUpper();
+        }
+    }
+    
+    private void PopulateChildren(FileExplorerService fileExplorer)
+    {
+        _folderInfo.Refresh(); 
+        if (!_folderInfo.Exists) 
+        {
             return;
         }
-
-        var items = _directoryInfo.GetFileSystemInfos();
-
+        var items = _folderInfo.GetFileSystemInfos();
         try 
         {
-            // Czyścimy obecne dzieci przed dodaniem nowych, 
-            // żeby uniknąć duplikatów przy ponownym wywołaniu
             Children.Clear();
-            
             foreach (var item in items)
             {
-                // Przekazujemy 'dir' (podfolder), a nie '_directoryInfo' (obecny folder)!
                 if (item is DirectoryInfo)
                 {
-                    Children.Add(new FolderViewModel((DirectoryInfo)item));
+                    FolderViewModel folderViewModel = new FolderViewModel((DirectoryInfo)item, fileExplorer);
+                    Children.Add(folderViewModel);
+                    fileExplorer.AddItem(folderViewModel);
                 }
 
                 if (item is FileInfo)
                 {
-                    Children.Add(new FileViewModel((FileInfo)item));
+                    FileViewModel fileViewModel = new FileViewModel((FileInfo)item);
+                    Children.Add(fileViewModel);
+                    fileExplorer.AddItem(fileViewModel);
                 }
+
             }
         }
-        catch (UnauthorizedAccessException)
+        catch (Exception ex)
         {
-            // Obsługa braku uprawnień do folderu
-            Debug.WriteLine($"Brak dostępu do: {_directoryInfo.FullName}");
+            Debug.WriteLine(ex.Message);
         }
+    }
+
+    public void UpdateUri(string newPath, string name)
+    {
+        _folderInfo = new DirectoryInfo(Path.Combine(newPath, name));     
+        Name = _folderInfo.Name;
+        if (_isRoot)
+        {
+            Name = Name.ToUpper();
+        }
+    }
+
+    public string GetName()
+    {
+        return Name;
+    }
+
+    public string GetPath()
+    {
+        return PathUtils.NormalizePath(_folderInfo.FullName);
+    }
+
+    public string GetParentPath()
+    {
+        return PathUtils.NormalizePath(_folderInfo!.Parent!.FullName);
     }
 }

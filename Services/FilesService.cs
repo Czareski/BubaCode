@@ -54,6 +54,7 @@ public class FilesService
 
     public void Import(Uri importedFile)
     {
+        CurrentFile = importedFile;
         FileImported?.Invoke(importedFile);
     }
     

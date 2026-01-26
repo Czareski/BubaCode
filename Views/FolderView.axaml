@@ -12,10 +12,13 @@
         <Path Data="{StaticResource folder_regular}" 
               Stretch="Uniform" 
               Fill="White" 
-              Width="15" Height="15"/>
+              Width="15" Height="15" VerticalAlignment="Center"/>
         
-        <TextBlock Text="{Binding DirectoryInfo.Name}" 
+        <TextBlock Text="{Binding Name}" 
                    Foreground="White" 
-                   VerticalAlignment="Center"/>
+                   VerticalAlignment="Center"
+                   FontWeight="{Binding FontWeight}">
+        </TextBlock>
+        
     </StackPanel>
 </UserControl>
