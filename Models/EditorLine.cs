@@ -29,7 +29,7 @@ public class EditorLine : INotifyPropertyChanged
 
             return Length;
         }
-    }
+    }   
     
     public EditorLine(string value)
     {
