@@ -82,6 +82,7 @@ public class PieceTableTextAdapter : ITextStorage
         int endOffset = GetOffset(range.EndPosition.X, range.EndPosition.Y);
         return _text.GetText(startOffset, endOffset - startOffset);
     }
+    public string GetText(int offset, int length) => _text.GetText(offset, length);
 
     public string Remove(Selection range)
     {
@@ -117,5 +118,10 @@ public class PieceTableTextAdapter : ITextStorage
             len -= 1;
 
         return len;
+    }
+    public TextLines Lines => _text.GetLines();
+    public override string ToString()
+    {
+        return _text.Export();
     }
 }

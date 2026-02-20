@@ -15,6 +15,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Media.TextFormatting;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using BubaCode.Models;
 using BubaCode.ViewModels;
 
@@ -29,6 +30,7 @@ public partial class CodeBox : Control
         get => GetValue(BackgroundProperty);
         set => SetValue(BackgroundProperty, value);
     }
+    
 
     public static readonly StyledProperty<int> CaretLineProperty =
         AvaloniaProperty.Register<CodeBox, int>(nameof(CaretLine));
@@ -50,12 +52,47 @@ public partial class CodeBox : Control
 
     public TextMetrics metrics;
 
+    private ScrollViewer _scrollViewer;
     private CodeBoxViewModel _vm;
     private CodeBoxMouseInputHandler _inputHandler;
     private readonly DispatcherTimer _caretTimer;
     private bool _showCaret;
     private readonly Typeface _typeface = new("Consolas");
-    private List<TextLayout> _formattedLines;
+    private double _scrollOffset = 0;
+    private int _firstVisibleLine = 0;
+    private int _visibleLinesCount = 1;
+
+    // Cache of ONLY visible lines. Index 0 corresponds to _firstVisibleLine.
+    private readonly List<VisualLine> _visualLines;
+
+    private const int TabSize = 4;
+
+    private static string ExpandTabs(string text, int tabSize, int startingVisualColumn = 0)
+    {
+        if (string.IsNullOrEmpty(text))
+            return string.Empty;
+
+        var sb = new StringBuilder(text.Length);
+        int col = startingVisualColumn;
+
+        foreach (char ch in text)
+        {
+            if (ch == '\t')
+            {
+                int spaces = tabSize - (col % tabSize);
+                if (spaces == 0) spaces = tabSize;
+                sb.Append(' ', spaces);
+                col += spaces;
+            }
+            else
+            {
+                sb.Append(ch);
+                col += 1;
+            }
+        }
+
+        return sb.ToString();
+    }
 
     public CodeBox()
     {
@@ -64,8 +101,7 @@ public partial class CodeBox : Control
         _caretTimer = new DispatcherTimer();
         _caretTimer.Interval = new TimeSpan(5000000);
         metrics = new TextMetrics(_typeface.GlyphTypeface, 16);
-        _formattedLines = new List<TextLayout>([CreateTextLayout(" ")]);
-
+        _visualLines = new List<VisualLine>();
         AttachedToVisualTree += (_, _) =>
         {
             _vm = DataContext as CodeBoxViewModel;
@@ -76,59 +112,14 @@ public partial class CodeBox : Control
 
     protected override void OnDataContextChanged(EventArgs e)
     {
-        if (_vm != null)
-            _vm.PropertyChanged -= VmOnPropertyChanged;
-
         base.OnDataContextChanged(e);
-
         _vm = DataContext as CodeBoxViewModel;
-        _inputHandler = new CodeBoxMouseInputHandler(_vm, this);
-
-        if (_vm != null)
-            _vm.PropertyChanged += VmOnPropertyChanged;
-
-        RefreshFormattedLines();
-    }
-
-    private void VmOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        // Gdy import podmienia cały Text (np. new PieceTableTextAdapter(...))
-        if (e.PropertyName == nameof(CodeBoxViewModel.Text))
-        {
-            RefreshFormattedLines();
-            InvalidateVisual();
-        }
-    }
-
-    private void RefreshFormattedLines()
-    {
-        if (_vm?.Text == null)
-            return;
-
-        _formattedLines.Clear();
-
-        for (int line = 0; line < _vm.Text.LinesCount; line++)
-            _formattedLines.Add(CreateTextLayout(_vm.Text.GetLine(line)));
-
-        if (_formattedLines.Count == 0)
-            _formattedLines.Add(CreateTextLayout(" "));
-
+        _inputHandler = new CodeBoxMouseInputHandler(_vm, this); 
+        
+        InvalidateVisual();
         InvalidateMeasure();
     }
-
-    private TextLayout CreateTextLayout(string text)
-    {
-
-        return new TextLayout(
-            text,
-            _typeface,
-            16,
-            Brushes.White,
-            TextAlignment.Left,
-            TextWrapping.NoWrap,
-            TextTrimming.None
-            );
-    }
+    
 
     private void InitCaretTimer()
     {
@@ -143,16 +134,27 @@ public partial class CodeBox : Control
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnAttachedToVisualTree(e);
+        _scrollViewer = this.FindAncestorOfType<ScrollViewer>();
+        _scrollViewer.ScrollChanged += OnScrollChanged;
         Focus();
+    }
+
+    private void OnScrollChanged(object sender, ScrollChangedEventArgs e)
+    {
+        _scrollOffset = Math.Max(0, e.OffsetDelta.Y);
+
+        _firstVisibleLine = (int)(_scrollOffset / metrics.LineHeight);
+        _visibleLinesCount = Math.Max(
+            1,
+            (int)Math.Ceiling(_scrollViewer.Viewport.Height / metrics.LineHeight) + 1
+        );
+
+        InvalidateVisual();
     }
 
     protected override void OnKeyDown(KeyEventArgs e)
     {
         ((CodeBoxViewModel)DataContext!).OnKeyDown(e);
-
-        // Tekst mutuje się "w środku" adaptera, więc musimy odświeżyć layouty ręcznie
-        RefreshFormattedLines();
-
         InvalidateVisual();
     }
 
@@ -205,26 +207,92 @@ public partial class CodeBox : Control
         base.Render(context);
         var background = Background;
 
-
         if (background != null)
         {
             var renderSize = Bounds.Size;
             context.FillRectangle(background, new Rect(renderSize));
         }
 
+        if (_scrollViewer != null)
+        {
+            _firstVisibleLine = (int)(_scrollViewer.Offset.Y / metrics.LineHeight);
+            _visibleLinesCount = Math.Max(1, (int)Math.Ceiling(_scrollViewer.Viewport.Height / metrics.LineHeight) + 1);
+        }
 
+        if (_scrollViewer != null)
+        {
+            _firstVisibleLine = (int)(_scrollViewer.Offset.Y / metrics.LineHeight);
+            _visibleLinesCount = Math.Max(1, (int)Math.Ceiling(_scrollViewer.Viewport.Height / metrics.LineHeight) + 1);
+        }
+
+        if (_vm?.Text == null)
+            return;
+
+        // Build visible line cache FIRST (including measured widths).
+        VisualLinesBuilder builder = new VisualLinesBuilder(_vm.Text);
+        _visualLines.Clear();
+        foreach (VisualLine line in builder.BuildLines(_firstVisibleLine, _visibleLinesCount, metrics.LineHeight))
+        {
+            MeasureLineWidth(line);
+            _visualLines.Add(line);
+        }
+
+        // Now selection background can safely use the visible cache.
         RenderSelectionBackground(context);
 
-
-        for (int i = 0; i < _formattedLines.Count; i++)
+        // Foreground: text and caret.
+        foreach (var line in _visualLines)
         {
-            RenderLine(context, i);
+            RenderLine(context, line);
 
-            if (i == CaretLine && _showCaret)
+            if (line.Index == CaretLine && _showCaret)
             {
-                RenderCaret(context, i);
+                RenderCaret(context, line.Index);
             }
         }
+    }
+
+    private bool TryGetVisualLine(int absoluteLineIndex, out VisualLine visualLine)
+    {
+        int relative = absoluteLineIndex - _firstVisibleLine;
+        if (relative < 0 || relative >= _visualLines.Count)
+        {
+            visualLine = default!;
+            return false;
+        }
+
+        visualLine = _visualLines[relative];
+        return true;
+    }
+
+    private void MeasureLineWidth(VisualLine line)
+    {
+        if (_vm.Text is not PieceTableTextAdapter pieceTable)
+            throw new NotImplementedException();
+
+        int index = pieceTable.Lines.GetOffset(line.Index);
+        double width = 0;
+
+        foreach (TextRun run in line.TextRuns)
+        {
+            string text = pieceTable.GetText(index, run.Length);
+            text = ExpandTabs(text, TabSize);
+
+            var layout = new TextLayout(
+                text,
+                _typeface,
+                16,
+                Brushes.White,
+                TextAlignment.Left,
+                TextWrapping.NoWrap,
+                TextTrimming.None
+            );
+
+            width += layout.WidthIncludingTrailingWhitespace;
+            index += run.Length;
+        }
+
+        line.Width = width;
     }
 
     private void RenderSelectionBackground(DrawingContext context)
@@ -233,60 +301,159 @@ public partial class CodeBox : Control
 
         if (selection == null) return;
         if (selection.HasSelectedFragmentOfText() == false) return;
-        int column = selection.StartPosition.Y;
-        for (int i = 0; i <= selection.EndPosition.X - selection.StartPosition.X; i++)
-        {
-            var line = selection.StartPosition.X + i;
-            var left = column * _formattedLines[line].Width / _vm.Text.GetLineLength(line) ;
-            left = (left < 0) ? 0 : left;
-            var right = (selection.EndPosition.X == line)
-                ? selection.EndPosition.Y * _formattedLines[line].Width / _vm.Text.GetLineLength(line)
-                : _formattedLines[line].Width;
-            var top = metrics.LineHeight * line;
-            var bottom = top + metrics.LineHeight;
 
-            column = 0;
-            context.FillRectangle(Brushes.Crimson, new Rect(left, top, right - left, bottom - top));
+        int startLine = selection.StartPosition.X;
+        int endLine = selection.EndPosition.X;
+
+        if (endLine < startLine)
+            (startLine, endLine) = (endLine, startLine);
+
+        int startColumn = selection.StartPosition.Y;
+
+        for (int lineIndex = startLine; lineIndex <= endLine; lineIndex++)
+        {
+            if (!TryGetVisualLine(lineIndex, out var vLine))
+            {
+                // Not visible, skip safely.
+                startColumn = 0;
+                continue;
+            }
+
+            int lineLength = _vm.Text.GetLineLength(lineIndex);
+            double width = vLine.Width;
+
+            double left;
+            if (lineLength <= 0)
+            {
+                left = 0;
+            }
+            else
+            {
+                left = startColumn * width / lineLength;
+                if (left < 0) left = 0;
+                if (left > width) left = width;
+            }
+
+            double right;
+            if (lineIndex == endLine)
+            {
+                int endColumn = selection.EndPosition.Y;
+                if (lineLength <= 0)
+                {
+                    right = left;
+                }
+                else
+                {
+                    right = endColumn * width / lineLength;
+                    if (right < left) right = left;
+                    if (right > width) right = width;
+                }
+            }
+            else
+            {
+                right = width;
+            }
+
+            double top = vLine.Y;
+            double bottom = top + metrics.LineHeight;
+
+            context.FillRectangle(Brushes.Crimson, new Rect(left, top, Math.Max(0, right - left), bottom - top));
+
+            startColumn = 0;
         }
     }
 
-    private void RenderLine(DrawingContext context, int index)
+    private void RenderLine(DrawingContext context, VisualLine line)
     {
-        _formattedLines[index].Draw(context, new Point(0, index * metrics.LineHeight));
+        double xOffset = 0;
+
+        if (_vm.Text is not PieceTableTextAdapter pieceTable)
+            throw new NotImplementedException();
+
+        int index = pieceTable.Lines.GetOffset(line.Index);
+
+        foreach (TextRun run in line.TextRuns)
+        {
+            string text = pieceTable.GetText(index, run.Length);
+            text = ExpandTabs(text, TabSize);
+
+            var layout = new TextLayout(
+                text,
+                _typeface,
+                16,
+                Brushes.White,
+                TextAlignment.Left,
+                TextWrapping.NoWrap,
+                TextTrimming.None
+            );
+            layout.Draw(context, new Point(xOffset, line.Y));
+            index += run.Length;
+            xOffset += layout.WidthIncludingTrailingWhitespace;
+        }
+
+        line.Width = xOffset;
     }
 
     private void RenderCaret(DrawingContext context, int lineIndex)
     {
-        double carretX = _vm.Text.GetLineLength(lineIndex) > 0
-            ? CaretColumn * _formattedLines[lineIndex].WidthIncludingTrailingWhitespace / _vm.Text.GetLineLength(lineIndex) // bez \n powinno byc
-            : 1;
-        context.DrawRectangle(new Pen(Brushes.Red),
-            new Rect(new Point(carretX, lineIndex * metrics.LineHeight),
-                new Point(carretX + 1, lineIndex * metrics.LineHeight + metrics.LineHeight)));
+        if (!TryGetVisualLine(lineIndex, out var vLine))
+            return;
+
+        if (_vm.Text is not PieceTableTextAdapter pieceTable)
+            throw new NotImplementedException();
+
+        int lineOffset = pieceTable.Lines.GetOffset(lineIndex);
+
+        // CaretColumn traktujemy jako "logiczny" indeks znaku w linii.
+        // Wyliczamy X caretu mierząc tekst od początku linii do CaretColumn,
+        // z tabami rozwiniętymi identycznie jak podczas renderowania.
+        int safeColumn = Math.Clamp(CaretColumn, 0, _vm.Text.GetLineLength(lineIndex));
+        string beforeCaret = safeColumn > 0
+            ? pieceTable.GetText(lineOffset, safeColumn)
+            : string.Empty;
+
+        beforeCaret = ExpandTabs(beforeCaret, TabSize);
+
+        double caretX;
+        if (beforeCaret.Length == 0)
+        {
+            caretX = 0;
+        }
+        else
+        {
+            var layout = new TextLayout(
+                beforeCaret,
+                _typeface,
+                16,
+                Brushes.White,
+                TextAlignment.Left,
+                TextWrapping.NoWrap,
+                TextTrimming.None
+            );
+            caretX = layout.WidthIncludingTrailingWhitespace;
+        }
+
+        context.DrawRectangle(
+            new Pen(Brushes.Red),
+            new Rect(
+                new Point(caretX, vLine.Y),
+                new Point(caretX + 1, vLine.Y + metrics.LineHeight)
+            )
+        );
     }
 
     public double GetLineWidth(int index)
     {
-        if (index >= _formattedLines.Count || index < 0)
-        {
+        if (!TryGetVisualLine(index, out var vLine))
             return 0;
-        }
 
-        return _formattedLines[index].Width;
+        return vLine.Width;
     }
 
     protected override Size MeasureOverride(Size availableSize)
     {
-        if (_formattedLines == null || _formattedLines.Count == 0)
-            return new Size(0, 0);
-
-        double maxWidth = 0;
-
-        foreach (var line in _formattedLines)
-            maxWidth = Math.Max(maxWidth, line.WidthIncludingTrailingWhitespace);
-
-        double height = _formattedLines.Count * metrics.LineHeight;
-
-        return new Size(maxWidth, height);
+        int totalLines = _vm.Text.LinesCount;
+        double height = totalLines * metrics.LineHeight;
+        return new Size(500, height);
     }
 }

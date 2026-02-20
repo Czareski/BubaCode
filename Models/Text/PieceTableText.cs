@@ -54,7 +54,7 @@ public class PieceTableText
         while (node != null)
         {
             var piece = node.Value;
-            // at the end of piece (no split)
+            // at the  of piece (no split)
             if (index == offset + piece.Length)
             {
                 pieces.AddAfter(node, new Piece(added.Length, text.Length, BufferType.Added));
@@ -177,7 +177,14 @@ public class PieceTableText
             if (localStart == 0 && localLen == piece.Length)
             {
                 pieces.Remove(node);
-                removed.Append(piece.Type == BufferType.Added ? added.ToString(pieceStart, piece.Length) : original.Substring(pieceStart, piece.Length));
+                
+                int bufferStart = piece.Start;
+
+                removed.Append(
+                    piece.Type == BufferType.Added
+                        ? added.ToString(bufferStart, piece.Length)
+                        : original.Substring(bufferStart, piece.Length)
+                );
             }
             // początek
             else if (localStart == 0)
@@ -258,7 +265,6 @@ public class PieceTableText
             int pieceGlobalStart = globalPos;
             int pieceGlobalEnd = globalPos + piece.Length;
 
-            // piece fully before requested range
             if (pieceGlobalEnd <= offset)
             {
                 globalPos = pieceGlobalEnd;
@@ -266,7 +272,6 @@ public class PieceTableText
                 continue;
             }
 
-            // piece starts after requested range ends
             if (pieceGlobalStart >= offset + length)
                 break;
 
