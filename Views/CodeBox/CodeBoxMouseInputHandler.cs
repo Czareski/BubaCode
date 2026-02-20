@@ -50,9 +50,9 @@ public class CodeBoxMouseInputHandler
 
         int line = (int)Math.Floor(y / _view.metrics.LineHeight);
         int column = 0;
-        if (line >= _view.Lines.Count)
+        if (line >= _viewModel.Text.LinesCount)
         {
-            line = _view.Lines.Count - 1;
+            line = _viewModel.Text.LinesCount - 1;
         }
 
         if (line < 0)
@@ -62,14 +62,14 @@ public class CodeBoxMouseInputHandler
 
         if (x > _view.GetLineWidth(line))
         {
-            column = _view.Lines[line].Length;
+            column = _viewModel.Text.GetLineLength(line);
         } else if (x < 0)
         {
             column = 0;
         }
         else
         {
-            double charWidth = _view.GetLineWidth(line) / _view.Lines[line].Length;
+            double charWidth = _view.GetLineWidth(line) / _viewModel.Text.GetLineLength(line);
             var ratio = x / charWidth;
             column = (int)Math.Round(ratio);
         }

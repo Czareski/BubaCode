@@ -39,7 +39,7 @@ public class TypeTextCommand : TextEditingCommand, ITypeCommand
         OnUndo(sender);
         var selection = new Selection(new Point(sender.Caret.Line, sender.Caret.Column));
         selection.Update(new Point(sender.Caret.Line, sender.Caret.Column - value.Length));
-        sender.Text.RemoveSelected(selection);
+        sender.Text.Remove(selection);
     }
 
     public string GetTypedValue()

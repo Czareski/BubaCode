@@ -13,7 +13,7 @@ public class CopyCommand : ICommand
         Selection? selection = sender.Selection;
         if (selection == null || !selection.HasSelectedFragmentOfText()) return ActionResult.DontAddToStack;
         
-        string copiedText = sender.Text.GetTextFromSelection(selection);
+        string copiedText = sender.Text.GetText(selection);
         ClipboardService.Instance?.SetTextAsync(copiedText);
         return ActionResult.DontAddToStack;
     }

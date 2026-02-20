@@ -8,7 +8,7 @@ public class RemoveFromSelectionCommand : ICommand
     public ActionResult Execute(CodeBoxViewModel sender)
     {
         if (sender.Selection == null) return ActionResult.DontAddToStack;
-        removedText = sender.Text.RemoveSelected(sender.Selection);
+        removedText = sender.Text.Remove(sender.Selection);
         return ActionResult.AddToStack;
     }
 

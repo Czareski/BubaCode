@@ -33,7 +33,6 @@
             <StackPanel>
                 <ScrollViewer Width="980" Height="670" HorizontalScrollBarVisibility="Visible"  VerticalScrollBarVisibility="Visible" DataContext="{Binding CodeBoxViewModel}">
                     <views:CodeBox
-                                   Lines="{Binding Text.Lines}"
                                    CaretLine="{Binding Caret.Line}"
                                    CaretColumn="{Binding Caret.Column}"
                                    Background="#1A1A1D"/>

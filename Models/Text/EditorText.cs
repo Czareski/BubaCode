@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Drawing;
@@ -11,7 +12,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace BubaCode.Models;
 
-public partial class EditorText : ObservableObject
+public partial class EditorText : ObservableObject, ITextStorage
 {
     public int LinesCount => Lines.Count;
     [ObservableProperty]
@@ -117,7 +118,7 @@ public partial class EditorText : ObservableObject
         Lines.Clear();
     }
 
-    public string GetTextFromSelection(Selection selection)
+    public string GetText(Selection selection)
     {
         StringBuilder result = new();
         for (int line = selection.StartPosition.X; line <= selection.EndPosition.X; line++)
@@ -131,7 +132,7 @@ public partial class EditorText : ObservableObject
         return result.ToString();
     }
 
-    public string RemoveSelected(Selection selection)
+    public string Remove(Selection selection)
     {
         string result = "";
         for (int line = selection.StartPosition.X; line <= selection.EndPosition.X; line++)
@@ -147,7 +148,12 @@ public partial class EditorText : ObservableObject
         _vm.Caret.Column = selection.StartPosition.Y;
         return result;
     }
-    
+
+    public string GetLine(int line)
+    {
+        return _lines[line].Text;
+    }
+
     public int GetLineLength(int line)
     {
         if (line < 0 || line >= Lines.Count)

@@ -13,7 +13,7 @@ public class PasteCommand : ICommand
         if (clipboardText == null) return ActionResult.DontAddToStack;
         if (sender.Selection != null && sender.Selection.HasSelectedFragmentOfText())
         {
-            sender.Text.RemoveSelected(sender.Selection);
+            sender.Text.Remove(sender.Selection);
         }
         sender.Text.InsertText(clipboardText);
         sender.ResetSelection();

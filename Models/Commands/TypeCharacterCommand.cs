@@ -31,7 +31,7 @@ public class TypeCharacterCommand : TextEditingCommand, ITypeCommand
         }
         if (sender.Selection != null)
         {
-            sender.Text.RemoveSelected(sender.Selection);
+            sender.Text.Remove(sender.Selection);
             sender.Selection = null;
         }
         sender.Text.InsertText(GetTypedValue());

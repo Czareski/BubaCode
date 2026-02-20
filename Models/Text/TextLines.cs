@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 
-namespace PieceTableReal;
+namespace BubaCode.Models;
 
 public class TextLines
 {
     private List<int> newLineOffsets = new([0]);
-    
+    public int Count => newLineOffsets.Count;
     public void OnInsert(int offset, string text)
     {
         if (string.IsNullOrEmpty(text))
@@ -31,6 +31,27 @@ public class TextLines
             newLineOffsets[i] += additionalOffset;
         }
     }
+    public void OnInsert(int offset, char c)
+    {
+
+        int lineIndex = GetLine(offset);
+
+        var insertedLines = new List<int>();
+
+        
+        if (c == '\n')
+            insertedLines.Add(offset + 1);
+
+        newLineOffsets.InsertRange(lineIndex + 1, insertedLines);
+
+        int additionalOffset = 1;
+        int firstAffectedLine = lineIndex + 1 + insertedLines.Count;
+
+        for (int i = firstAffectedLine; i < newLineOffsets.Count; i++)
+        {
+            newLineOffsets[i] += additionalOffset;
+        }
+    }
 
     public void OnDelete(int offset, int length)
     {
@@ -45,7 +66,7 @@ public class TextLines
         int removeTo = removeFrom;
 
         while (removeTo < newLineOffsets.Count &&
-               newLineOffsets[removeTo] < end)
+               newLineOffsets[removeTo] <= end)
         {
             removeTo++;
         }

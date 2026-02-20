@@ -12,7 +12,7 @@ namespace BubaCode.ViewModels;
 public partial class CodeBoxViewModel : ViewModelBase
 {
     [ObservableProperty]
-    private EditorText _text;
+    private ITextStorage _text;
     [ObservableProperty]
     private Caret _caret;
     public Selection? Selection;
@@ -27,7 +27,7 @@ public partial class CodeBoxViewModel : ViewModelBase
         _fileService.GetSourceToExport = GetText;
         _registry = new ShortcutRegistry();
         Caret = new Caret(this);
-        _text = new EditorText(this);
+        _text = new PieceTableTextAdapter(this, new PieceTableText(""));
         _actions =  new Actions(this);
     }
 
@@ -110,20 +110,14 @@ public partial class CodeBoxViewModel : ViewModelBase
         {
             return;
         }
-        Text.Clear();
         Caret.Line = 0;
         
-        IEnumerable<string> lines = File.ReadLines(file.LocalPath);
-        foreach (string line in lines)
-        {
-            Text.ImportLine(line);
-        }
+        var text = File.ReadAllText(file.LocalPath);
 
-        if (Text.LinesCount == 0)
-        {
-            Text.InitializeEmpty();
-            return;
-        }
+        text = text.Replace("\r", "");
+        
+        // Text = new EditorText(this);
+        Text = new PieceTableTextAdapter(this, new PieceTableText(text));
         Caret.Line = Text.LinesCount - 1;
         Caret.Column = Text.GetLineLength(Caret.Line);
         _imported = true;

@@ -30,15 +30,6 @@ public partial class CodeBox : Control
         set => SetValue(BackgroundProperty, value);
     }
 
-    public static readonly StyledProperty<ObservableCollection<EditorLine>> LinesProperty =
-        AvaloniaProperty.Register<CodeBox, ObservableCollection<EditorLine>>(nameof(Lines));
-
-    public ObservableCollection<EditorLine>? Lines
-    {
-        get => GetValue(LinesProperty);
-        set => SetValue(LinesProperty, value);
-    }
-
     public static readonly StyledProperty<int> CaretLineProperty =
         AvaloniaProperty.Register<CodeBox, int>(nameof(CaretLine));
 
@@ -85,21 +76,49 @@ public partial class CodeBox : Control
 
     protected override void OnDataContextChanged(EventArgs e)
     {
+        if (_vm != null)
+            _vm.PropertyChanged -= VmOnPropertyChanged;
+
         base.OnDataContextChanged(e);
+
         _vm = DataContext as CodeBoxViewModel;
         _inputHandler = new CodeBoxMouseInputHandler(_vm, this);
-        _formattedLines.Clear();
-        foreach (EditorLine line in _vm.Text.Lines)
+
+        if (_vm != null)
+            _vm.PropertyChanged += VmOnPropertyChanged;
+
+        RefreshFormattedLines();
+    }
+
+    private void VmOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        // Gdy import podmienia cały Text (np. new PieceTableTextAdapter(...))
+        if (e.PropertyName == nameof(CodeBoxViewModel.Text))
         {
-            _formattedLines.Add(CreateTextLayout(line.Text));
+            RefreshFormattedLines();
+            InvalidateVisual();
         }
-        
-        InvalidateVisual();
+    }
+
+    private void RefreshFormattedLines()
+    {
+        if (_vm?.Text == null)
+            return;
+
+        _formattedLines.Clear();
+
+        for (int line = 0; line < _vm.Text.LinesCount; line++)
+            _formattedLines.Add(CreateTextLayout(_vm.Text.GetLine(line)));
+
+        if (_formattedLines.Count == 0)
+            _formattedLines.Add(CreateTextLayout(" "));
+
+        InvalidateMeasure();
     }
 
     private TextLayout CreateTextLayout(string text)
     {
-        
+
         return new TextLayout(
             text,
             _typeface,
@@ -130,6 +149,10 @@ public partial class CodeBox : Control
     protected override void OnKeyDown(KeyEventArgs e)
     {
         ((CodeBoxViewModel)DataContext!).OnKeyDown(e);
+
+        // Tekst mutuje się "w środku" adaptera, więc musimy odświeżyć layouty ręcznie
+        RefreshFormattedLines();
+
         InvalidateVisual();
     }
 
@@ -177,68 +200,6 @@ public partial class CodeBox : Control
         InvalidateVisual();
     }
 
-    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
-    {
-        base.OnPropertyChanged(change);
-
-        if (change.Property == LinesProperty)
-        {
-            if (change.OldValue is ObservableCollection<EditorLine> oldCollection)
-            {
-                foreach (var line in oldCollection)
-                    line.PropertyChanged -= OnLineChanged;
-                oldCollection.CollectionChanged -= OnLinesCollectionChanged;
-            }
-
-            if (change.NewValue is ObservableCollection<EditorLine> newCollection)
-            {
-                foreach (var line in newCollection)
-                    line.PropertyChanged += OnLineChanged;
-                newCollection.CollectionChanged += OnLinesCollectionChanged;
-            }
-        }
-    }
-
-    private void OnLinesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-    {
-        if (e.OldItems != null)
-        {
-            foreach (EditorLine oldLine in e.OldItems)
-            {
-                oldLine.PropertyChanged -= OnLineChanged;
-            }
-        }
-
-        _formattedLines = new List<TextLayout>();
-        if (e.NewItems != null)
-        {
-            foreach (EditorLine newLine in e.NewItems)
-            {
-                newLine.PropertyChanged += OnLineChanged;
-            }
-        }
-
-        foreach (EditorLine line in Lines)
-        {
-            _formattedLines.Add(CreateTextLayout(line.Text));
-        }
-
-        InvalidateMeasure();
-        InvalidateVisual();
-    }
-
-    private void OnLineChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (sender is EditorLine line)
-        {
-            var index = Lines!.IndexOf(line);
-
-            _formattedLines[index] = CreateTextLayout(line.Text);
-        }
-        InvalidateMeasure();
-        InvalidateVisual();
-    }
-
     public override void Render(DrawingContext context)
     {
         base.Render(context);
@@ -276,10 +237,10 @@ public partial class CodeBox : Control
         for (int i = 0; i <= selection.EndPosition.X - selection.StartPosition.X; i++)
         {
             var line = selection.StartPosition.X + i;
-            var left = column * _formattedLines[line].Width / Lines[line].LengthWithoutNewLine;
+            var left = column * _formattedLines[line].Width / _vm.Text.GetLineLength(line) ;
             left = (left < 0) ? 0 : left;
             var right = (selection.EndPosition.X == line)
-                ? selection.EndPosition.Y * _formattedLines[line].Width / Lines[line].LengthWithoutNewLine
+                ? selection.EndPosition.Y * _formattedLines[line].Width / _vm.Text.GetLineLength(line)
                 : _formattedLines[line].Width;
             var top = metrics.LineHeight * line;
             var bottom = top + metrics.LineHeight;
@@ -296,8 +257,8 @@ public partial class CodeBox : Control
 
     private void RenderCaret(DrawingContext context, int lineIndex)
     {
-        double carretX = Lines[lineIndex].Length > 0
-            ? CaretColumn * _formattedLines[lineIndex].WidthIncludingTrailingWhitespace / Lines[lineIndex].LengthWithoutNewLine
+        double carretX = _vm.Text.GetLineLength(lineIndex) > 0
+            ? CaretColumn * _formattedLines[lineIndex].WidthIncludingTrailingWhitespace / _vm.Text.GetLineLength(lineIndex) // bez \n powinno byc
             : 1;
         context.DrawRectangle(new Pen(Brushes.Red),
             new Rect(new Point(carretX, lineIndex * metrics.LineHeight),
