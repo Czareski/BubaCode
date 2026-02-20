@@ -62,7 +62,6 @@ public partial class CodeBox : Control
     private int _firstVisibleLine = 0;
     private int _visibleLinesCount = 1;
 
-    // Cache of ONLY visible lines. Index 0 corresponds to _firstVisibleLine.
     private readonly List<VisualLine> _visualLines;
 
     private const int TabSize = 4;
@@ -156,6 +155,7 @@ public partial class CodeBox : Control
     {
         ((CodeBoxViewModel)DataContext!).OnKeyDown(e);
         InvalidateVisual();
+        InvalidateMeasure();
     }
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
@@ -228,7 +228,6 @@ public partial class CodeBox : Control
         if (_vm?.Text == null)
             return;
 
-        // Build visible line cache FIRST (including measured widths).
         VisualLinesBuilder builder = new VisualLinesBuilder(_vm.Text);
         _visualLines.Clear();
         foreach (VisualLine line in builder.BuildLines(_firstVisibleLine, _visibleLinesCount, metrics.LineHeight))
@@ -237,10 +236,8 @@ public partial class CodeBox : Control
             _visualLines.Add(line);
         }
 
-        // Now selection background can safely use the visible cache.
         RenderSelectionBackground(context);
 
-        // Foreground: text and caret.
         foreach (var line in _visualLines)
         {
             RenderLine(context, line);
@@ -314,7 +311,6 @@ public partial class CodeBox : Control
         {
             if (!TryGetVisualLine(lineIndex, out var vLine))
             {
-                // Not visible, skip safely.
                 startColumn = 0;
                 continue;
             }
@@ -404,9 +400,7 @@ public partial class CodeBox : Control
 
         int lineOffset = pieceTable.Lines.GetOffset(lineIndex);
 
-        // CaretColumn traktujemy jako "logiczny" indeks znaku w linii.
-        // Wyliczamy X caretu mierząc tekst od początku linii do CaretColumn,
-        // z tabami rozwiniętymi identycznie jak podczas renderowania.
+
         int safeColumn = Math.Clamp(CaretColumn, 0, _vm.Text.GetLineLength(lineIndex));
         string beforeCaret = safeColumn > 0
             ? pieceTable.GetText(lineOffset, safeColumn)
@@ -452,8 +446,16 @@ public partial class CodeBox : Control
 
     protected override Size MeasureOverride(Size availableSize)
     {
+        if (_vm?.Text == null) return new Size(500, 0);
         int totalLines = _vm.Text.LinesCount;
         double height = totalLines * metrics.LineHeight;
-        return new Size(500, height);
+        
+        double maxWidth = 0;
+        for (int i = 0; i < totalLines; i++)
+        {
+            maxWidth = Math.Max(maxWidth, GetLineWidth(i));
+        }
+        
+        return new Size(Math.Max(500, maxWidth), height);
     }
 }

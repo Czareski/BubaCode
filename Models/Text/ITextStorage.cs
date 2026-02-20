@@ -5,6 +5,7 @@ namespace BubaCode.Models;
 public interface ITextStorage
 {
     public int LinesCount { get; }
+    event Action? LinesCountChanged;
     void InsertText(string text);
     void InsertChar(char c);
     void HandleEnter();

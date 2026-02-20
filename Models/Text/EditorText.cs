@@ -15,6 +15,8 @@ namespace BubaCode.Models;
 public partial class EditorText : ObservableObject, ITextStorage
 {
     public int LinesCount => Lines.Count;
+    public event Action? LinesCountChanged;
+
     [ObservableProperty]
     private ObservableCollection<EditorLine> _lines;
     private CodeBoxViewModel _vm;

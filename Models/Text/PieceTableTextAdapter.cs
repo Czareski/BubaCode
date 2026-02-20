@@ -1,4 +1,5 @@
-﻿using BubaCode.ViewModels;
+﻿using System;
+using BubaCode.ViewModels;
 
 namespace BubaCode.Models;
 
@@ -7,6 +8,7 @@ public class PieceTableTextAdapter : ITextStorage
     private PieceTableText _text;
     private CodeBoxViewModel _vm;
     public int LinesCount => _text.GetLines().Count;
+    public event Action? LinesCountChanged;
 
     
     public PieceTableTextAdapter(CodeBoxViewModel vm, PieceTableText text)
@@ -33,20 +35,27 @@ public class PieceTableTextAdapter : ITextStorage
 
     public void InsertText(string text)
     {
+        int oldLines = LinesCount;
         _text.Insert(text, GetCurrentOffset());
+        if (oldLines != LinesCount)
+            LinesCountChanged?.Invoke();
         CaretPosition position = GetCaretPosition(GetCurrentOffset() + text.Length);
         _vm.Caret.SetPosition(position);
     }
 
     public void InsertChar(char c)
     {
+        int oldLines = LinesCount;
         _text.Insert(c, GetCurrentOffset());
+        if (oldLines != LinesCount)
+            LinesCountChanged?.Invoke();
         _vm.Caret.Column++;
     }
 
     public void HandleEnter()
     {
         _text.Insert('\n', GetCurrentOffset());
+        LinesCountChanged?.Invoke();
         _vm.Caret.Line++;
         _vm.Caret.Column = 0;
     }
@@ -64,7 +73,10 @@ public class PieceTableTextAdapter : ITextStorage
 
         int deleteOffset = currentOffset - 1;
 
+        int oldLines = LinesCount;
         string removed = _text.Delete(deleteOffset, 1);
+        if (oldLines != LinesCount)
+            LinesCountChanged?.Invoke();
         _vm.Caret.SetPosition(GetCaretPosition(deleteOffset));
 
         return removed.Length > 0 ? removed[0] : null;
@@ -90,7 +102,11 @@ public class PieceTableTextAdapter : ITextStorage
         int endOffset = GetOffset(range.EndPosition.X, range.EndPosition.Y);
         CaretPosition position = GetCaretPosition(startOffset);
         _vm.Caret.SetPosition(position);
-        return _text.Delete(startOffset, endOffset - startOffset);
+        int oldLines = LinesCount;
+        var removed = _text.Delete(startOffset, endOffset - startOffset);
+        if (oldLines != LinesCount)
+            LinesCountChanged?.Invoke();
+        return removed;
     }
 
     public string GetLine(int line)

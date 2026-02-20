@@ -13,32 +13,50 @@
         d:DesignHeight="720"
         Width="1280"
         Height="720"
-        CanResize="False"
-        
-        >
+        CanResize="False">
     
     <Window.Styles>
         <Style Selector="TextBlock">
 		    <Setter Property="FontFamily" Value="NonMono"></Setter>
         </Style>
-        
     </Window.Styles>
+    
     <Grid RowDefinitions="50, *">
         <views:FileBar Grid.Row="0" DataContext="{Binding FileBarViewModel}"></views:FileBar>
-        <Separator Margin="0 0 0 0" Grid.Row="0" Grid.Column="1" Background="#3F3F3F" VerticalAlignment="Bottom"></Separator>
-        <StackPanel Grid.Row="1" Orientation="Horizontal">
-            <ScrollViewer x:Name="Explorer" Background="#161618" Padding="10" Width="300" Height="670">
+        <Separator Margin="0 0 0 0"
+                   Grid.Row="0"
+                   Grid.Column="1"
+                   Background="#3F3F3F"
+                   VerticalAlignment="Bottom"></Separator>
+        <Grid Grid.Row="1" ColumnDefinitions="300,*">
+            <ScrollViewer x:Name="Explorer"
+                          Grid.Column="0"
+                          Background="#161618"
+                          Padding="10"
+                          HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Auto">
                 <views:FileExplorer DataContext="{Binding FileExplorerViewModel}"></views:FileExplorer>
             </ScrollViewer>
-            <StackPanel>
-                <ScrollViewer Width="980" Height="670" HorizontalScrollBarVisibility="Visible"  VerticalScrollBarVisibility="Visible" DataContext="{Binding CodeBoxViewModel}">
-                    <views:CodeBox
+
+            <ScrollViewer Grid.Column="1"
+                          HorizontalScrollBarVisibility="Auto"
+                          VerticalScrollBarVisibility="Auto">
+                <Grid ColumnDefinitions="Auto,*"
+                      Background="#1A1A1D">
+                    <views:LineNumberBox Grid.Column="0"
+                                         VerticalAlignment="Stretch"
+                                         Margin="0 0 5 0"
+                                         DataContext="{Binding CodeBoxViewModel}"/>
+
+                    <views:CodeBox Grid.Column="1"
+                                   MinWidth="{Binding Viewport.Width, RelativeSource={RelativeSource AncestorType=ScrollViewer}}"
+                                   MinHeight="{Binding Viewport.Height, RelativeSource={RelativeSource AncestorType=ScrollViewer}}"
+                                   DataContext="{Binding CodeBoxViewModel}"
                                    CaretLine="{Binding Caret.Line}"
-                                   CaretColumn="{Binding Caret.Column}"
-                                   Background="#1A1A1D"/>
-                </ScrollViewer>
-            </StackPanel>
-        </StackPanel>
+                                   CaretColumn="{Binding Caret.Column}"/>
+                </Grid>
+            </ScrollViewer>
+        </Grid>
         <views:ErrorView DataContext="{Binding ErrorViewModel}"/>
     </Grid>
 </Window>
