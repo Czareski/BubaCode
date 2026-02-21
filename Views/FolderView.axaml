@@ -8,7 +8,11 @@
              x:Class="BubaCode.Views.FolderView"
              x:DataType="vm:FolderViewModel"
              >
-    <Grid ColumnDefinitions="Auto, Auto" HorizontalAlignment="Stretch" Background="Transparent">
+    <Grid ColumnDefinitions="Auto, Auto" HorizontalAlignment="Stretch" Background="Transparent"
+          DragDrop.AllowDrop="True"
+          PointerPressed="OnPointerPressed"
+          PointerMoved="OnPointerMoved"
+          PointerReleased="OnPointerReleased">
         <Grid.ContextMenu>
             <ContextMenu>
                 <MenuItem Header="Rename" Command="{Binding RenameCommand}">

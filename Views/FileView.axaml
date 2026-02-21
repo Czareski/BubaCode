@@ -6,7 +6,11 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="BubaCode.Views.FileView"
              x:DataType="vm:FileViewModel">
-    <Grid ColumnDefinitions="Auto, Auto, *" Margin="0" HorizontalAlignment="Stretch" Background="Transparent">
+    <Grid ColumnDefinitions="Auto, Auto, *" Margin="0" HorizontalAlignment="Stretch" Background="Transparent"
+          DragDrop.AllowDrop="False"
+          PointerPressed="OnPointerPressed"
+          PointerMoved="OnPointerMoved"
+          PointerReleased="OnPointerReleased">
         <Grid.ContextMenu>
             <ContextMenu>
                 <MenuItem Header="Rename" Command="{Binding RenameCommand}">

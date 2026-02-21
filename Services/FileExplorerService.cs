@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Xml.Linq;
 using BubaCode.Models.FilesExplorer;
 using BubaCode.ViewModels.FileExplorer;
@@ -36,7 +38,10 @@ public class FileExplorerService
         IFileExplorerItem renamedItem = _items[oldPath];
 
         _items.Remove(oldPath);
-        _items.Add(newPath, renamedItem);
+        FolderViewModel parent = (FolderViewModel)_items[renamedItem!.GetParentPath()];
+        parent.Children.Remove(renamedItem);
+        
+        AddOnPropperPlace(renamedItem);
         renamedItem.UpdateUri(newPath, "");
         if (renamedItem is FolderViewModel)
         {
@@ -86,16 +91,46 @@ public class FileExplorerService
         {
             DirectoryInfo info = new DirectoryInfo(e.FullPath);
             item = new FolderViewModel(info, this);
-            
+
         }
         else if (File.Exists(e.FullPath))
         {
             FileInfo info = new FileInfo(e.FullPath);
             item = new FileViewModel(info);
         }
+        
+        AddOnPropperPlace(item!);
+
+    }
+
+    private void AddOnPropperPlace(IFileExplorerItem item)
+    {
         AddItem(item!);
-        FolderViewModel parent =  (FolderViewModel)_items[item!.GetParentPath()];
-        parent.Children.Add(item);
+        FolderViewModel parent = (FolderViewModel)_items[item!.GetParentPath()];
+        int insertIndex = 0;
+        bool isFolder = item is FolderViewModel;
+
+        foreach (var child in parent.Children)
+        {
+            bool childIsFolder = child is FolderViewModel;
+
+            if (isFolder && !childIsFolder)
+            {
+                break;
+            }
+
+            if (isFolder == childIsFolder)
+            {
+                if (string.Compare(item.GetName(), child.GetName(), StringComparison.Ordinal) < 0)
+                {
+                    break;
+                }
+            }
+
+            insertIndex++;
+        }
+
+        parent.Children.Insert(insertIndex, item);
     }
 
     public void TryGetValue(Uri uri, out IFileExplorerItem? item)

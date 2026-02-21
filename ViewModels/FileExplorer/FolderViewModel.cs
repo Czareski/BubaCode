@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -31,7 +32,7 @@ public partial class FolderViewModel : ViewModelBase, IFileExplorerItem
         _name =  directoryInfo.Name;
         _isRoot = isRoot;
         PopulateChildren(fileExplorer);
-        
+
         if (isRoot)
         {
             _fontWeight = "Bold";
@@ -41,31 +42,30 @@ public partial class FolderViewModel : ViewModelBase, IFileExplorerItem
     
     private void PopulateChildren(FileExplorerService fileExplorer)
     {
-        _folderInfo.Refresh(); 
-        if (!_folderInfo.Exists) 
+        _folderInfo.Refresh();
+        if (!_folderInfo.Exists)
         {
             return;
         }
         var items = _folderInfo.GetFileSystemInfos();
-        try 
+        try
         {
             Children.Clear();
-            foreach (var item in items)
+
+            var directories = items.OfType<DirectoryInfo>().OrderBy(d => d.Name);
+            foreach (var directory in directories)
             {
-                if (item is DirectoryInfo)
-                {
-                    FolderViewModel folderViewModel = new FolderViewModel((DirectoryInfo)item, fileExplorer);
-                    Children.Add(folderViewModel);
-                    fileExplorer.AddItem(folderViewModel);
-                }
+                FolderViewModel folderViewModel = new FolderViewModel(directory, fileExplorer);
+                Children.Add(folderViewModel);
+                fileExplorer.AddItem(folderViewModel);
+            }
 
-                if (item is FileInfo)
-                {
-                    FileViewModel fileViewModel = new FileViewModel((FileInfo)item);
-                    Children.Add(fileViewModel);
-                    fileExplorer.AddItem(fileViewModel);
-                }
-
+            var files = items.OfType<FileInfo>().OrderBy(f => f.Name);
+            foreach (var file in files)
+            {
+                FileViewModel fileViewModel = new FileViewModel(file);
+                Children.Add(fileViewModel);
+                fileExplorer.AddItem(fileViewModel);
             }
         }
         catch (Exception ex)
