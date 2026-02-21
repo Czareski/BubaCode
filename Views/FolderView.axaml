@@ -8,17 +8,56 @@
              x:Class="BubaCode.Views.FolderView"
              x:DataType="vm:FolderViewModel"
              >
-    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
-        <Path Data="{StaticResource folder_regular}" 
-              Stretch="Uniform" 
-              Fill="White" 
-              Width="15" Height="15" VerticalAlignment="Center"/>
-        
-        <TextBlock Text="{Binding Name}" 
-                   Foreground="White" 
-                   VerticalAlignment="Center"
-                   FontWeight="{Binding FontWeight}">
-        </TextBlock>
-        
-    </StackPanel>
+    <Grid ColumnDefinitions="Auto, Auto" HorizontalAlignment="Stretch" Background="Transparent">
+        <Grid.ContextMenu>
+            <ContextMenu>
+                <MenuItem Header="Rename" Command="{Binding RenameCommand}">
+                    <MenuItem.Icon>
+                        <Path Data="{StaticResource rename_regular}"
+                              Stretch="Uniform"
+                              Fill="White"
+                              Width="16" Height="16"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Delete" Command="{Binding DeleteCommand}">
+                    <MenuItem.Icon>
+                        <Path Data="{StaticResource delete_regular}"
+                              Stretch="Uniform"
+                              Fill="White"
+                              Width="16" Height="16"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator/>
+                <MenuItem Header="Add New File" Command="{Binding AddNewFileCommand}">
+                    <MenuItem.Icon>
+                        <Path Data="{StaticResource document_add_regular}"
+                              Stretch="Uniform"
+                              Fill="White"
+                              Width="16" Height="16"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Add New Folder" Command="{Binding AddNewFolderCommand}">
+                    <MenuItem.Icon>
+                        <Path Data="{StaticResource folder_add_regular}"
+                              Stretch="Uniform"
+                              Fill="White"
+                              Width="16" Height="16"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+            </ContextMenu>
+        </Grid.ContextMenu>
+
+        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
+                <Path Data="{StaticResource folder_regular}"
+                  Stretch="Uniform"
+                  Fill="White"
+                  Width="15" Height="15" VerticalAlignment="Center"/>
+
+            <TextBlock Text="{Binding Name}"
+                       Foreground="White"
+                       VerticalAlignment="Center"
+                       FontWeight="{Binding FontWeight}">
+            </TextBlock>
+        </StackPanel>
+    </Grid>
 </UserControl>

@@ -27,10 +27,11 @@ public partial class MainWindowViewModel : ViewModelBase
         _errorService = new ErrorService();
         _errorViewModel = new ErrorViewModel(_errorService);
         _fileService = new FilesService(_errorService);
-        _fileBarViewModel = new FileBarViewModel(_fileService);
+        _fileExplorerViewModel = new FileExplorerViewModel(_fileService, this);
+        
+        _fileBarViewModel = new FileBarViewModel(_fileService, _fileExplorerViewModel);
         _codeBoxViewModel = new CodeBoxViewModel(_fileService);
         
-        _fileExplorerViewModel = new FileExplorerViewModel(_fileService, this);
         
     }
     public void SetCodeBoxViewModel(Uri uri)

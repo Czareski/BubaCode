@@ -1,15 +1,14 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using BubaCode.ViewModels;
 
 namespace BubaCode.Views;
 
-public partial class FileBar : UserControl
+public partial class AreYouSureDialog : Window
 {
-    public FileBar()
+    public AreYouSureDialog()
     {
         InitializeComponent();
     }
-    
 }

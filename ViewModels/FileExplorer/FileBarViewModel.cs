@@ -16,10 +16,12 @@ public partial class FileBarViewModel : ViewModelBase
 
     [ObservableProperty] private string _filePath = "";
     private FilesService _fileService;
-    
-    public FileBarViewModel(FilesService fileService)
+    private FileExplorerViewModel _fileExplorerViewModel;
+
+    public FileBarViewModel(FilesService fileService, FileExplorerViewModel fileExplorerViewModel)
     {
         _fileService = fileService;
+        _fileExplorerViewModel = fileExplorerViewModel;
         _fileService.FileImported += SetFilePath;
     }
     
@@ -40,5 +42,4 @@ public partial class FileBarViewModel : ViewModelBase
         FileName = Path.GetFileName(importedFile.LocalPath);
         FilePath = importedFile.LocalPath.Remove(importedFile.LocalPath.Length - FileName.Length).Replace('\\', '/');
     }
-    
 }

@@ -2,10 +2,13 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
-
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using BubaCode.Models.FilesExplorer;
 using BubaCode.Utils;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 namespace BubaCode.ViewModels.FileExplorer;
 
@@ -19,6 +22,8 @@ public partial class FolderViewModel : ViewModelBase, IFileExplorerItem
     [ObservableProperty] private string _name;
     [ObservableProperty] private string _fontWeight = "Normal";
     private bool _isRoot;
+
+    public string FolderName => Name;
 
     public FolderViewModel(DirectoryInfo directoryInfo, FileExplorerService fileExplorer, bool isRoot = false)
     {
@@ -92,5 +97,46 @@ public partial class FolderViewModel : ViewModelBase, IFileExplorerItem
     public string GetParentPath()
     {
         return PathUtils.NormalizePath(_folderInfo!.Parent!.FullName);
+    }
+
+    [RelayCommand]
+    public async void Rename()
+    {
+        string newName = await DialogService.Instance.ShowInputDialogAsync("Rename Directory", "Enter new name:", GetName());
+
+        if (!String.IsNullOrWhiteSpace(newName))
+        {
+            Directory.Move(GetPath(), GetPath().Replace(GetName(), newName));
+        }
+    }
+
+    [RelayCommand]
+    public async void Delete()
+    {
+        bool result = await DialogService.Instance.ShowAreYouSureDialogAsync("Delete Directory", $"Are you sure you want to delete {GetName()}?");
+        if (result)
+        {
+            
+            Directory.Delete(GetPath(), true);
+        }
+    }
+
+    [RelayCommand]
+    public async void AddNewFile()
+    {
+        string fileName = await DialogService.Instance.ShowInputDialogAsync("Create file", "Enter a new file name:");
+        if (!String.IsNullOrWhiteSpace(fileName))
+        {
+            File.Create(Path.Combine(GetPath(), fileName)).Dispose();
+        }
+    }
+    [RelayCommand]
+    public async void AddNewFolder()
+    {
+        string directoryName = await DialogService.Instance.ShowInputDialogAsync("Create directory", "Enter a new directory name:");
+        if (!String.IsNullOrWhiteSpace(directoryName))
+        {
+            Directory.CreateDirectory(Path.Combine(GetPath(), directoryName));
+        }
     }
 }

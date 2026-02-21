@@ -1,0 +1,43 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:BubaCode.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        x:Class="BubaCode.Views.AreYouSureDialog"
+        x:DataType="vm:AreYouSureDialogViewModel"
+        Title="{Binding Title}"
+        Width="400"
+        Height="150"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="#1A1A1D">
+
+    <Grid RowDefinitions="Auto, *, Auto" Margin="20">
+        <TextBlock Grid.Row="0"
+                   Text="{Binding Prompt}"
+                   Foreground="White"
+                   Margin="0 0 0 10"/>
+        
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Center"
+                    Margin="0 20 0 0">
+            <Button Content="OK"
+                    Width="80"
+                    Height="30"
+                    Margin="0 0 10 0"
+                    Command="{Binding OkCommand}"
+                    IsDefault="True"
+                    Background="#0E639C"
+                    Foreground="White"/>
+            <Button Content="Cancel"
+                    Width="80"
+                    Height="30"
+                    Command="{Binding CancelCommand}"
+                    IsCancel="True"
+                    Background="#3F3F3F"
+                    Foreground="White"/>
+        </StackPanel>
+    </Grid>
+</Window>

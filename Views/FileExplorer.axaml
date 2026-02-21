@@ -9,7 +9,7 @@
              x:DataType="vm:FileExplorerViewModel">
     <TreeView ItemsSource="{Binding RootAsList}" SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
         <TreeView.DataTemplates>
-            <TreeDataTemplate DataType="{x:Type vm:FolderViewModel}" 
+            <TreeDataTemplate DataType="{x:Type vm:FolderViewModel}"
                               ItemsSource="{Binding Children}">
                 <views:FolderView />
             </TreeDataTemplate>

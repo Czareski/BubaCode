@@ -29,5 +29,9 @@
       <DependentUpon>CodeBox.axaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\AreYouSureDialog.axaml.cs">
+      <DependentUpon>AreYouSureDialog.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
 </Project>

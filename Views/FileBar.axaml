@@ -8,21 +8,23 @@
              x:DataType="vm:FileBarViewModel">
     
     <StackPanel Height="50" Background="#161618" FlowDirection="RightToLeft" Orientation="Horizontal">
-        <Button Foreground="Wheat" Width="30" Height="30" Margin="15  0 0 0" Command="{Binding Open }" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}">
-            <Path Data="{StaticResource folder_open_regular} "
-                  Stroke="White"
-                  Fill="White"
-                  Width="24"
-                  Height="24"/>
+        <Button Foreground="Wheat" Width="30" Height="30" Margin="15 0 0 0" Padding="0" Command="{Binding Open }" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}">
+            <Viewbox Width="24" Height="24">
+                <Path Data="{StaticResource folder_open_regular}"
+                      Stroke="White"
+                      Fill="White"
+                      Stretch="Uniform"/>
+            </Viewbox>
         </Button>
-        <Button Foreground="Wheat" Width="30" Height="30" Margin="2" Command="{Binding Save }">
-            <Path Data="{StaticResource save_regular}"
-                  Stroke="White"
-                  Fill="White"
-                  Width="24"
-                  Height="24"/>
+        <Button Foreground="Wheat" Width="30" Height="30" Margin="2" Padding="0" Command="{Binding Save }">
+            <Viewbox Width="24" Height="24">
+                <Path Data="{StaticResource save_regular}"
+                      Stroke="White"
+                      Fill="White"
+                      Stretch="Uniform"/>
+            </Viewbox>
         </Button>
-        <TextBlock Text="{Binding FileName}" Foreground="White" Height="30" Padding="10 4 10 0" Background="#111111"></TextBlock>
-        <TextBlock Text="{Binding FilePath}" Foreground="White" Height="30" Padding="4"></TextBlock>
+        <TextBlock Text="{Binding FileName}" Foreground="White" Height="30" Padding="10 4 10 0" Background="#111111" VerticalAlignment="Center"/>
+        <TextBlock Text="{Binding FilePath}" Foreground="White" Height="30" Padding="4" VerticalAlignment="Center"/>
     </StackPanel>
 </UserControl>

@@ -17,6 +17,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         ClipboardService clipboard = new ClipboardService(GetTopLevel(this));
+        DialogService dialogService = new DialogService();
         DataContext = new MainWindowViewModel();
     }
 }
