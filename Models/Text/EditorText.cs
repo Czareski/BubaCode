@@ -134,6 +134,11 @@ public partial class EditorText : ObservableObject, ITextStorage
         return result.ToString();
     }
 
+    public string GetText(int offset, int length)
+    {
+        throw new NotImplementedException();
+    }
+
     public string Remove(Selection selection)
     {
         string result = "";

@@ -1,7 +1,18 @@
-﻿namespace BubaCode.Views;
+﻿using Avalonia.Media;
+using BubaCode.Models.Syntax;
 
-public class TextRun(double yOffset, int length)
+namespace BubaCode.Views;
+
+public class TextRun
 {
-    public double YOffset = yOffset;
-    public int Length = length;
+    public int StartOffset;
+    public int Length;
+    public IBrush Brush;
+
+    public TextRun(int startOffset, int length, IBrush brush)
+    {
+        StartOffset = startOffset;
+        Length = length;
+        Brush = brush;
+    }
 }

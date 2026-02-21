@@ -54,10 +54,30 @@ public class PieceTableTextAdapter : ITextStorage
 
     public void HandleEnter()
     {
+        string currentLine = GetLine(_vm.Caret.Line);
+        int tabsNumber = 0;
+        foreach (char c in currentLine)
+        {
+            if (c == '\t')
+            {
+                tabsNumber++;
+            }
+            else
+            {
+                break;
+            }
+        }
+         
+        
         _text.Insert('\n', GetCurrentOffset());
         LinesCountChanged?.Invoke();
         _vm.Caret.Line++;
         _vm.Caret.Column = 0;
+        
+        for (int i = 0; i < tabsNumber; i++)
+        {
+            HandleTab();
+        }
     }
 
     public void UndoHandleEnter()

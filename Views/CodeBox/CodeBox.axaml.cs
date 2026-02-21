@@ -17,6 +17,7 @@ using Avalonia.Media.TextFormatting;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using BubaCode.Models;
+using BubaCode.Models.Syntax;
 using BubaCode.ViewModels;
 
 namespace BubaCode.Views;
@@ -63,6 +64,8 @@ public partial class CodeBox : Control
     private int _visibleLinesCount = 1;
 
     private readonly List<VisualLine> _visualLines;
+    private List<Token> _tokens = new();
+    private readonly Lexer _lexer = new();
 
     private const int TabSize = 4;
 
@@ -113,8 +116,10 @@ public partial class CodeBox : Control
     {
         base.OnDataContextChanged(e);
         _vm = DataContext as CodeBoxViewModel;
-        _inputHandler = new CodeBoxMouseInputHandler(_vm, this); 
-        
+        _inputHandler = new CodeBoxMouseInputHandler(_vm, this);
+
+        _tokens.Clear();
+
         InvalidateVisual();
         InvalidateMeasure();
     }
@@ -154,6 +159,12 @@ public partial class CodeBox : Control
     protected override void OnKeyDown(KeyEventArgs e)
     {
         ((CodeBoxViewModel)DataContext!).OnKeyDown(e);
+
+        if (_vm?.Text != null)
+        {
+            _tokens = _lexer.Tokenize(_vm.Text);
+        }
+
         InvalidateVisual();
         InvalidateMeasure();
     }
@@ -228,7 +239,12 @@ public partial class CodeBox : Control
         if (_vm?.Text == null)
             return;
 
-        VisualLinesBuilder builder = new VisualLinesBuilder(_vm.Text);
+        if (_tokens.Count == 0)
+        {
+            _tokens = _lexer.Tokenize(_vm.Text);
+        }
+
+        VisualLinesBuilder builder = new VisualLinesBuilder(_vm.Text, _tokens);
         _visualLines.Clear();
         foreach (VisualLine line in builder.BuildLines(_firstVisibleLine, _visibleLinesCount, metrics.LineHeight))
         {
@@ -267,26 +283,24 @@ public partial class CodeBox : Control
         if (_vm.Text is not PieceTableTextAdapter pieceTable)
             throw new NotImplementedException();
 
-        int index = pieceTable.Lines.GetOffset(line.Index);
         double width = 0;
 
         foreach (TextRun run in line.TextRuns)
         {
-            string text = pieceTable.GetText(index, run.Length);
+            string text = pieceTable.GetText(run.StartOffset, run.Length);
             text = ExpandTabs(text, TabSize);
 
             var layout = new TextLayout(
                 text,
                 _typeface,
                 16,
-                Brushes.White,
+                run.Brush,
                 TextAlignment.Left,
                 TextWrapping.NoWrap,
                 TextTrimming.None
             );
 
             width += layout.WidthIncludingTrailingWhitespace;
-            index += run.Length;
         }
 
         line.Width = width;
@@ -366,24 +380,21 @@ public partial class CodeBox : Control
         if (_vm.Text is not PieceTableTextAdapter pieceTable)
             throw new NotImplementedException();
 
-        int index = pieceTable.Lines.GetOffset(line.Index);
-
         foreach (TextRun run in line.TextRuns)
         {
-            string text = pieceTable.GetText(index, run.Length);
+            string text = pieceTable.GetText(run.StartOffset, run.Length);
             text = ExpandTabs(text, TabSize);
 
             var layout = new TextLayout(
                 text,
                 _typeface,
                 16,
-                Brushes.White,
+                run.Brush,
                 TextAlignment.Left,
                 TextWrapping.NoWrap,
                 TextTrimming.None
             );
             layout.Draw(context, new Point(xOffset, line.Y));
-            index += run.Length;
             xOffset += layout.WidthIncludingTrailingWhitespace;
         }
 
@@ -449,13 +460,13 @@ public partial class CodeBox : Control
         if (_vm?.Text == null) return new Size(500, 0);
         int totalLines = _vm.Text.LinesCount;
         double height = totalLines * metrics.LineHeight;
-        
-        double maxWidth = 0;
-        for (int i = 0; i < totalLines; i++)
+
+        double maxWidth = 500;
+        foreach (var line in _visualLines)
         {
-            maxWidth = Math.Max(maxWidth, GetLineWidth(i));
+            maxWidth = Math.Max(maxWidth, line.Width);
         }
-        
-        return new Size(Math.Max(500, maxWidth), height);
+
+        return new Size(maxWidth, height);
     }
 }

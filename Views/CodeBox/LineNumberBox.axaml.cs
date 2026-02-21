@@ -48,10 +48,19 @@ public partial class LineNumberBox : Control
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnAttachedToVisualTree(e);
-        _scrollViewer = this.FindAncestorOfType<ScrollViewer>();
-        if (_scrollViewer != null)
+
+        var parent = this.Parent;
+        if (parent is Grid grid)
         {
-            _scrollViewer.ScrollChanged += OnScrollChanged;
+            foreach (var child in grid.Children)
+            {
+                if (child is ScrollViewer sv)
+                {
+                    _scrollViewer = sv;
+                    _scrollViewer.ScrollChanged += OnScrollChanged;
+                    break;
+                }
+            }
         }
     }
 
@@ -64,10 +73,20 @@ public partial class LineNumberBox : Control
     public override void Render(DrawingContext context)
     {
         base.Render(context);
-        if (_vm?.Text == null) return;
+
+        if (_vm?.Text == null)
+        {
+            return;
+        }
+
+        int totalLines = _vm.Text.LinesCount;
+        if (totalLines == 0)
+        {
+            return;
+        }
 
         int firstVisibleLine = 0;
-        int visibleLinesCount = _vm.Text.LinesCount;
+        int visibleLinesCount = totalLines;
 
         if (_scrollViewer != null)
         {
@@ -75,7 +94,7 @@ public partial class LineNumberBox : Control
             visibleLinesCount = (int)Math.Ceiling(_scrollViewer.Viewport.Height / _metrics.LineHeight) + 1;
         }
 
-        int lastLine = Math.Min(_vm.Text.LinesCount, firstVisibleLine + visibleLinesCount);
+        int lastLine = Math.Min(totalLines, firstVisibleLine + visibleLinesCount);
 
         for (int i = firstVisibleLine; i < lastLine; i++)
         {
@@ -97,11 +116,20 @@ public partial class LineNumberBox : Control
 
     protected override Size MeasureOverride(Size availableSize)
     {
-        if (_vm?.Text == null) return new Size(40, 0);
-        
-        double height = _vm.Text.LinesCount * _metrics.LineHeight;
+        if (_vm?.Text == null)
+        {
+            return new Size(40, availableSize.Height);
+        }
 
-        string maxLineStr = _vm.Text.LinesCount.ToString();
+        int linesCount = _vm.Text.LinesCount;
+        if (linesCount == 0)
+        {
+            return new Size(40, availableSize.Height);
+        }
+
+        double height = linesCount * _metrics.LineHeight;
+
+        string maxLineStr = linesCount.ToString();
         var layout = new TextLayout(
             maxLineStr,
             _typeface,
@@ -111,7 +139,7 @@ public partial class LineNumberBox : Control
             TextWrapping.NoWrap,
             TextTrimming.None
         );
-        
+
         return new Size(layout.Width + 15, height);
     }
 }

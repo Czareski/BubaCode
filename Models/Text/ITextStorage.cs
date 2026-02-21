@@ -14,6 +14,7 @@ public interface ITextStorage
     void HandleTab();
     int GetLineLength(int line);
     string GetText(Selection range);
+    string GetText(int offset, int length);
     string Remove(Selection range);
     string GetLine(int line);
 

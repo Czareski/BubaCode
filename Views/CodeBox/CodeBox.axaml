@@ -5,7 +5,7 @@
              x:Class="BubaCode.Views.CodeBox">
     <UserControl.Styles>
         <Style Selector="views|CodeBox:focus">
-            <Setter Property="Background" Value="Red"/>
+            <Setter Property="Background" Value="Transparent"/>
         </Style>
     </UserControl.Styles>
 </UserControl>

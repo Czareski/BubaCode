@@ -38,24 +38,23 @@
                 <views:FileExplorer DataContext="{Binding FileExplorerViewModel}"></views:FileExplorer>
             </ScrollViewer>
 
-            <ScrollViewer Grid.Column="1"
-                          HorizontalScrollBarVisibility="Auto"
-                          VerticalScrollBarVisibility="Auto">
-                <Grid ColumnDefinitions="Auto,*"
-                      Background="#1A1A1D">
-                    <views:LineNumberBox Grid.Column="0"
-                                         VerticalAlignment="Stretch"
-                                         Margin="0 0 5 0"
-                                         DataContext="{Binding CodeBoxViewModel}"/>
+            <Grid Grid.Column="1" ColumnDefinitions="Auto,*" Background="#1A1A1D">
+                <views:LineNumberBox Grid.Column="0"
+                                     VerticalAlignment="Stretch"
+                                     Margin="0 0 5 0"
+                                     DataContext="{Binding CodeBoxViewModel}"/>
 
-                    <views:CodeBox Grid.Column="1"
-                                   MinWidth="{Binding Viewport.Width, RelativeSource={RelativeSource AncestorType=ScrollViewer}}"
+                <ScrollViewer Grid.Column="1"
+                              HorizontalScrollBarVisibility="Auto"
+                              VerticalScrollBarVisibility="Auto">
+                    <views:CodeBox MinWidth="{Binding Viewport.Width, RelativeSource={RelativeSource AncestorType=ScrollViewer}}"
                                    MinHeight="{Binding Viewport.Height, RelativeSource={RelativeSource AncestorType=ScrollViewer}}"
                                    DataContext="{Binding CodeBoxViewModel}"
                                    CaretLine="{Binding Caret.Line}"
-                                   CaretColumn="{Binding Caret.Column}"/>
-                </Grid>
-            </ScrollViewer>
+                                   CaretColumn="{Binding Caret.Column}"
+                                   Background="Transparent"/>
+                </ScrollViewer>
+            </Grid>
         </Grid>
         <views:ErrorView DataContext="{Binding ErrorViewModel}"/>
     </Grid>
