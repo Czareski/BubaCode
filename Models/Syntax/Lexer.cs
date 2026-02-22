@@ -3,19 +3,19 @@ using System.Collections.Generic;
 
 namespace BubaCode.Models.Syntax;
 
-public class Lexer
+public class Lexer : ILexer
 {
     private static readonly HashSet<string> Keywords = new()
     {
         "if", "else", "while", "for", "return", "class", "public", "private", "static",
-        "void", "int", "string", "bool", "var", "const", "let", "function", "new"
+        "void", "int", "string", "bool", "var", "const", "let", "function", "new", "foreach"
     };
 
     public List<Token> Tokenize(ITextStorage text)
     {
         var tokens = new List<Token>();
 
-        string fullText = GetFullText(text);
+        string fullText = text.ToString();
 
         int offset = 0;
         while (offset < fullText.Length)
@@ -103,17 +103,7 @@ public class Lexer
 
         return tokens;
     }
-
-    private string GetFullText(ITextStorage text)
-    {
-        var lines = new List<string>();
-        for (int i = 0; i < text.LinesCount; i++)
-        {
-            lines.Add(text.GetLine(i));
-        }
-        return string.Join("\n", lines);
-    }
-
+    
     private TokenType DetermineIdentifierType(string fullText, List<Token> tokens, int start, int end, string word)
     {
         int nextPos = end;

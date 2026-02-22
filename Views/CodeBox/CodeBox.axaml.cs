@@ -65,7 +65,7 @@ public partial class CodeBox : Control
 
     private readonly List<VisualLine> _visualLines;
     private List<Token> _tokens = new();
-    private readonly Lexer _lexer = new();
+    private ILexer _lexer = new TxtLexer();
 
     private const int TabSize = 4;
 
@@ -109,21 +109,46 @@ public partial class CodeBox : Control
             _vm = DataContext as CodeBoxViewModel;
             _inputHandler = new CodeBoxMouseInputHandler(_vm, this);
         };
+        AddHandler(RequestBringIntoViewEvent, (sender, e) =>
+        {
+            e.Handled = true;
+        });
         InitCaretTimer();
     }
 
     protected override void OnDataContextChanged(EventArgs e)
     {
         base.OnDataContextChanged(e);
+        if (_vm != null)
+        {
+            _vm.PropertyChanged -= OnVmPropertyChanged;
+        }
+
         _vm = DataContext as CodeBoxViewModel;
+        
+        
+        if (_vm?.Text != null)
+        {
+            _lexer = LexerFactory.Create(_vm.Extension);
+        }
+        
+        _vm.PropertyChanged += OnVmPropertyChanged;
+        
         _inputHandler = new CodeBoxMouseInputHandler(_vm, this);
-
-        _tokens.Clear();
-
-        InvalidateVisual();
-        InvalidateMeasure();
+        
+        
+        RebuildVisualState();
     }
-    
+
+    private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(CodeBoxViewModel.Extension))
+        {
+            _lexer = LexerFactory.Create(_vm.Extension);
+
+            RebuildVisualState();
+        }
+    }
 
     private void InitCaretTimer()
     {
@@ -145,7 +170,7 @@ public partial class CodeBox : Control
 
     private void OnScrollChanged(object sender, ScrollChangedEventArgs e)
     {
-        _scrollOffset = Math.Max(0, e.OffsetDelta.Y);
+        _scrollOffset = Math.Max(0, _scrollViewer.Offset.Y);
 
         _firstVisibleLine = (int)(_scrollOffset / metrics.LineHeight);
         _visibleLinesCount = Math.Max(
@@ -153,20 +178,14 @@ public partial class CodeBox : Control
             (int)Math.Ceiling(_scrollViewer.Viewport.Height / metrics.LineHeight) + 1
         );
 
-        InvalidateVisual();
+        RebuildVisualState();
     }
 
     protected override void OnKeyDown(KeyEventArgs e)
     {
         ((CodeBoxViewModel)DataContext!).OnKeyDown(e);
 
-        if (_vm?.Text != null)
-        {
-            _tokens = _lexer.Tokenize(_vm.Text);
-        }
-
-        InvalidateVisual();
-        InvalidateMeasure();
+        RebuildVisualState();
     }
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
@@ -239,19 +258,6 @@ public partial class CodeBox : Control
         if (_vm?.Text == null)
             return;
 
-        if (_tokens.Count == 0)
-        {
-            _tokens = _lexer.Tokenize(_vm.Text);
-        }
-
-        VisualLinesBuilder builder = new VisualLinesBuilder(_vm.Text, _tokens);
-        _visualLines.Clear();
-        foreach (VisualLine line in builder.BuildLines(_firstVisibleLine, _visibleLinesCount, metrics.LineHeight))
-        {
-            MeasureLineWidth(line);
-            _visualLines.Add(line);
-        }
-
         RenderSelectionBackground(context);
 
         foreach (var line in _visualLines)
@@ -262,6 +268,28 @@ public partial class CodeBox : Control
             {
                 RenderCaret(context, line.Index);
             }
+        }
+    }
+    private void RebuildVisualState()
+    {
+        if (_vm?.Text == null)
+            return;
+
+        _tokens = _lexer.Tokenize(_vm.Text);
+        BuildVisualLines();
+
+        InvalidateMeasure();
+        InvalidateVisual();
+    }
+
+    private void BuildVisualLines()
+    {
+        VisualLinesBuilder builder = new VisualLinesBuilder(_vm.Text, _tokens);
+        _visualLines.Clear();
+        foreach (VisualLine line in builder.BuildLines(_firstVisibleLine, _visibleLinesCount, metrics.LineHeight))
+        {
+            line.Width = MeasureLineWidth(line);
+            _visualLines.Add(line);
         }
     }
 
@@ -278,7 +306,7 @@ public partial class CodeBox : Control
         return true;
     }
 
-    private void MeasureLineWidth(VisualLine line)
+    private double MeasureLineWidth(VisualLine line)
     {
         if (_vm.Text is not PieceTableTextAdapter pieceTable)
             throw new NotImplementedException();
@@ -303,7 +331,7 @@ public partial class CodeBox : Control
             width += layout.WidthIncludingTrailingWhitespace;
         }
 
-        line.Width = width;
+        return width;
     }
 
     private void RenderSelectionBackground(DrawingContext context)
@@ -457,16 +485,16 @@ public partial class CodeBox : Control
 
     protected override Size MeasureOverride(Size availableSize)
     {
-        if (_vm?.Text == null) return new Size(500, 0);
+        if (_vm?.Text == null) return new Size(availableSize.Width, 0);
         int totalLines = _vm.Text.LinesCount;
         double height = totalLines * metrics.LineHeight;
 
-        double maxWidth = 500;
+        double maxWidth = 0;
         foreach (var line in _visualLines)
         {
             maxWidth = Math.Max(maxWidth, line.Width);
         }
-
+        
         return new Size(maxWidth, height);
     }
 }

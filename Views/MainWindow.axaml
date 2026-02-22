@@ -28,7 +28,7 @@
                    Grid.Column="1"
                    Background="#3F3F3F"
                    VerticalAlignment="Bottom"></Separator>
-        <Grid Grid.Row="1" ColumnDefinitions="300,*">
+        <Grid Grid.Row="1" ColumnDefinitions="300, *">
             <ScrollViewer x:Name="Explorer"
                           Grid.Column="0"
                           Background="#161618"
@@ -37,24 +37,23 @@
                           VerticalScrollBarVisibility="Auto">
                 <views:FileExplorer DataContext="{Binding FileExplorerViewModel}"></views:FileExplorer>
             </ScrollViewer>
-
-            <Grid Grid.Column="1" ColumnDefinitions="Auto,*" Background="#1A1A1D">
-                <views:LineNumberBox Grid.Column="0"
-                                     VerticalAlignment="Stretch"
-                                     Margin="0 0 5 0"
-                                     DataContext="{Binding CodeBoxViewModel}"/>
-
                 <ScrollViewer Grid.Column="1"
-                              HorizontalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Visible"
                               VerticalScrollBarVisibility="Auto">
-                    <views:CodeBox MinWidth="{Binding Viewport.Width, RelativeSource={RelativeSource AncestorType=ScrollViewer}}"
-                                   MinHeight="{Binding Viewport.Height, RelativeSource={RelativeSource AncestorType=ScrollViewer}}"
-                                   DataContext="{Binding CodeBoxViewModel}"
-                                   CaretLine="{Binding Caret.Line}"
-                                   CaretColumn="{Binding Caret.Column}"
-                                   Background="Transparent"/>
+                    <Grid ColumnDefinitions="Auto, *">
+                        <views:LineNumberBox 
+                            DataContext="{Binding CodeBoxViewModel}"
+                            Background="#0A0A0A"
+                            />
+                        
+                        <views:CodeBox Grid.Column="1"
+                                       MinHeight="{Binding Viewport.Height, RelativeSource={RelativeSource AncestorType=ScrollViewer}}"
+                                       DataContext="{Binding CodeBoxViewModel}"
+                                       CaretLine="{Binding Caret.Line}"
+                                       CaretColumn="{Binding Caret.Column}"
+                                       Background="#0A0A0A"/>
+                    </Grid>
                 </ScrollViewer>
-            </Grid>
         </Grid>
         <views:ErrorView DataContext="{Binding ErrorViewModel}"/>
     </Grid>

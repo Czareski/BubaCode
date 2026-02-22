@@ -10,6 +10,14 @@ namespace BubaCode.Views;
 
 public partial class LineNumberBox : Control
 {
+    public static readonly StyledProperty<IBrush?> BackgroundProperty = Border.BackgroundProperty.AddOwner<Panel>();
+
+    public IBrush? Background
+    {
+        get => GetValue(BackgroundProperty);
+        set => SetValue(BackgroundProperty, value);
+    }
+    
     private CodeBoxViewModel? _vm;
     private ScrollViewer? _scrollViewer;
     private readonly Typeface _typeface = new("Consolas");
@@ -45,35 +53,17 @@ public partial class LineNumberBox : Control
         InvalidateMeasure();
     }
 
-    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
-    {
-        base.OnAttachedToVisualTree(e);
-
-        var parent = this.Parent;
-        if (parent is Grid grid)
-        {
-            foreach (var child in grid.Children)
-            {
-                if (child is ScrollViewer sv)
-                {
-                    _scrollViewer = sv;
-                    _scrollViewer.ScrollChanged += OnScrollChanged;
-                    break;
-                }
-            }
-        }
-    }
-
-    private void OnScrollChanged(object? sender, ScrollChangedEventArgs e)
-    {
-        InvalidateVisual();
-        InvalidateMeasure();
-    }
-
     public override void Render(DrawingContext context)
     {
         base.Render(context);
+        var background = Background;
 
+        if (background != null)
+        {
+            var renderSize = Bounds.Size;
+            context.FillRectangle(background, new Rect(renderSize));
+        }
+        
         if (_vm?.Text == null)
         {
             return;

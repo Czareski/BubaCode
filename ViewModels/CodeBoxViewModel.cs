@@ -15,6 +15,8 @@ public partial class CodeBoxViewModel : ViewModelBase
     private ITextStorage _text;
     [ObservableProperty]
     private Caret _caret;
+    [ObservableProperty]
+    private string _extension = "";
     public Selection? Selection;
     private Actions _actions;
     private FilesService _fileService;
@@ -113,11 +115,11 @@ public partial class CodeBoxViewModel : ViewModelBase
         Caret.Line = 0;
         
         var text = File.ReadAllText(file.LocalPath);
-
         text = text.Replace("\r", "");
         
-        // Text = new EditorText(this);
         Text = new PieceTableTextAdapter(this, new PieceTableText(text));
+        Extension = Path.GetExtension(file.LocalPath);
+        
         Caret.Line = Text.LinesCount - 1;
         Caret.Column = Text.GetLineLength(Caret.Line);
         _imported = true;
