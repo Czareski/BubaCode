@@ -20,7 +20,7 @@
 
 ---
 
-## 🎯 Overview
+## Overview
 
 BubaCode is a lightweight, cross-platform code editor designed as an educational project to explore:
 - Advanced text editing algorithms (Piece Table implementation)
@@ -33,7 +33,7 @@ This project serves as a practical example of building complex desktop applicati
 
 ---
 
-## ✨ Features
+## Features
 
 ### Core Editing Features
 - ✅ **Multi-line text editing** with full keyboard navigation
@@ -73,7 +73,7 @@ This project serves as a practical example of building complex desktop applicati
 
 ---
 
-## 🏗️ Architecture Highlights
+## Architecture Highlights
 
 ### 1. **Piece Table Text Implementation**
 BubaCode uses a sophisticated **Piece Table** data structure for text storage, providing:
@@ -120,7 +120,7 @@ Extensible **syntax highlighting** architecture:
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 - **Framework**: .NET 9.0
 - **UI Framework**: Avalonia UI 11.3.9
@@ -132,7 +132,7 @@ Extensible **syntax highlighting** architecture:
 ---
 
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - **.NET 9.0 SDK** or later
@@ -165,6 +165,7 @@ dotnet run
 
 | Shortcut | Action |
 |----------|--------|
+| `Ctrl+S` | Save |
 | `Ctrl+Z` | Undo |
 | `Ctrl+Y` | Redo |
 | `Ctrl+C` | Copy selected text |
@@ -176,7 +177,7 @@ dotnet run
 
 ---
 
-## 🎯 Roadmap
+## Roadmap
 
 ### Planned Features
 - [ ] Theme customization
