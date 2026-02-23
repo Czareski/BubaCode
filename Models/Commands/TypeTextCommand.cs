@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.Timers;
+using Avalonia.Input;
 using Avalonia.Threading;
 using BubaCode.ViewModels;
 
@@ -10,10 +11,11 @@ namespace BubaCode.Models.Commands;
 public class TypeTextCommand : TextEditingCommand, ITypeCommand
 {
     private DispatcherTimer _timer;
-    private string value;
-    public TypeTextCommand(string concatedValue, CodeBoxViewModel vm)
+    private string? _value = null;
+    public TypeTextCommand(KeyEventArgs args)
     {
-        value = concatedValue;
+        
+        _value = GetValueFromArgs(args);
         _timer = new DispatcherTimer();
         _timer.Interval = new TimeSpan(0, 0, 0, 0, 1000);
         _timer.Tick += (_, _) =>
@@ -21,30 +23,48 @@ public class TypeTextCommand : TextEditingCommand, ITypeCommand
             _timer.Stop();
         };
         _timer.Start();
-        MakeCaretAfterSnapshot(vm);
     }
     
     public ActionResult Execute(CodeBoxViewModel sender)
     {
+        if (_value == null) return ActionResult.DontAddToStack;
         OnExecute(sender);
         
         sender.Text.InsertText(GetTypedValue());
-        
-        
+        if (sender.GetActions().LastCommand is TypeTextCommand typeTextCommand)
+        {
+            if (typeTextCommand.CanBeConcated())
+            {
+                typeTextCommand.Concat(sender, this);
+                return ActionResult.DontAddToStack;
+            }
+        }
+        MakeCaretAfterSnapshot(sender);
+
         return ActionResult.AddToStack;
     }
 
     public void Undo(CodeBoxViewModel sender)
     {
         OnUndo(sender);
-        var selection = new Selection(new Point(sender.Caret.Line, sender.Caret.Column));
-        selection.Update(new Point(sender.Caret.Line, sender.Caret.Column - value.Length));
-        sender.Text.Remove(selection);
+    }
+
+    public void Redo(CodeBoxViewModel sender)
+    {
+        OnRedo(sender);
+    }
+
+    public string GetValueFromArgs(KeyEventArgs args)
+    {
+        if (args.KeySymbol == null) return null;
+        if (args!.KeyModifiers.HasFlag(KeyModifiers.Shift))
+            return args.KeySymbol!.ToUpper();
+        return args.KeySymbol!;
     }
 
     public string GetTypedValue()
     {
-        return value;
+        return _value;
     }
 
     public bool CanBeConcated()
@@ -54,7 +74,7 @@ public class TypeTextCommand : TextEditingCommand, ITypeCommand
 
     public void Concat(CodeBoxViewModel vm, ITypeCommand other)
     {
-        value = GetTypedValue() + other.GetTypedValue();
+        _value = GetTypedValue() + other.GetTypedValue();
         MakeCaretAfterSnapshot(vm);
         _timer.Start();
     }

@@ -21,6 +21,10 @@ public class RemoveCharacterCommand : TextEditingCommand, ICommand
     {
         if (removedCharacter == null) return;
         OnUndo(sender);
-        sender.Text.InsertChar((char)removedCharacter);
+    }
+
+    public void Redo(CodeBoxViewModel sender)
+    {
+        OnRedo(sender);
     }
 }

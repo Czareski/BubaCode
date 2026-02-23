@@ -49,18 +49,7 @@ public class Actions
             return;
         }
         ICommand command = _undoCommands.Pop();
-        command.Execute(_vm);
-        _actions.Push(command);
-    }
-
-    public ICommand? RemoveFromTop()
-    {
-        if (_actions.Count == 0) { return null; }
-        return _actions.Pop();
-    }
-
-    public void PushWithoutDoing(ICommand command)
-    {
+        command.Redo(_vm);
         _actions.Push(command);
     }
 }

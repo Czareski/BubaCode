@@ -17,5 +17,6 @@ public interface ITextStorage
     string GetText(int offset, int length);
     string Remove(Selection range);
     string GetLine(int line);
-
+    void RestoreSnapshot(TextSnapshot snapshot);
+    TextSnapshot TakeSnapshot();
 }

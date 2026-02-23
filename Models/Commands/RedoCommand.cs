@@ -14,4 +14,9 @@ public class  RedoCommand : ICommand
     {
         
     }
+
+    public void Redo(CodeBoxViewModel sender)
+    {
+        
+    }
 }

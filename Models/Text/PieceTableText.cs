@@ -13,24 +13,26 @@ public enum BufferType
 
 public class Piece(int start, int length, BufferType type)
 {
-    public int Start = start;
-    public int Length = length;
-    public BufferType Type = type;
+    public int Start { get; } = start;
+    public int Length { get; } = length;
+    public BufferType Type { get; } = type;
 }
 
 public class PieceTableText
 {
-    public string original;
-    public StringBuilder added = new();
-    private LinkedList<Piece> pieces = new();
-    private TextLines lines = new();
-
+    private string _original;
+    private StringBuilder _added = new();
+    private TextLines _lines = new();
+    public LinkedList<Piece> Pieces = new();
+    public TextLines GetLines() => _lines;
+    public string GetOriginal() => _original;
+    public string GetAdded() => _added.ToString();
     public int Length
     {
         get
         {
             int len = 0;
-            foreach (var p in pieces)
+            foreach (var p in Pieces)
                 len += p.Length;
             return len;
         }
@@ -39,26 +41,26 @@ public class PieceTableText
     public PieceTableText(string text)
     {
         text = text.Replace("\r", "");
-        original = text;
+        _original = text;
         
-        lines.OnInsert(0, text);
+        _lines.OnInsert(0, text);
         
-        pieces.AddFirst(new Piece(0, original.Length, BufferType.Original));
+        Pieces.AddFirst(new Piece(0, _original.Length, BufferType.Original));
     }
 
     public void Insert(string text, int index)
     {
-        lines.OnInsert(index, text);
+        _lines.OnInsert(index, text);
         int offset = 0;
-        var node = pieces.First;
+        var node = Pieces.First;
         while (node != null)
         {
             var piece = node.Value;
-            // at the  of piece (no split)
+            // at the end of piece (no split)
             if (index == offset + piece.Length)
             {
-                pieces.AddAfter(node, new Piece(added.Length, text.Length, BufferType.Added));
-                added.Append(text);
+                Pieces.AddAfter(node, new Piece(_added.Length, text.Length, BufferType.Added));
+                _added.Append(text);
                 break;
             }
             // in the part of piece (split)
@@ -67,17 +69,19 @@ public class PieceTableText
                 int localIndex = index - offset;
                 int secondLength = piece.Length - localIndex;
 
-                piece.Length = localIndex;
+                // Replace current piece with shortened version
+                var newFirstPiece = new Piece(piece.Start, localIndex, piece.Type);
+                node.Value = newFirstPiece;
 
-                var inserted = pieces.AddAfter(
+                var inserted = Pieces.AddAfter(
                     node,
-                    new Piece(added.Length, text.Length, BufferType.Added)
+                    new Piece(_added.Length, text.Length, BufferType.Added)
                 );
-                added.Append(text);
+                _added.Append(text);
 
                 if (secondLength > 0)
                 {
-                    pieces.AddAfter(
+                    Pieces.AddAfter(
                         inserted,
                         new Piece(piece.Start + localIndex, secondLength, piece.Type)
                     );
@@ -92,17 +96,17 @@ public class PieceTableText
     
     public void Insert(char c, int index)
     {
-        lines.OnInsert(index, c);
+        _lines.OnInsert(index, c);
         int offset = 0;
-        var node = pieces.First;
+        var node = Pieces.First;
         while (node != null)
         {
             var piece = node.Value;
             // at the end of piece (no split)
             if (index == offset + piece.Length)
             {
-                pieces.AddAfter(node, new Piece(added.Length, 1, BufferType.Added));
-                added.Append(c);
+                Pieces.AddAfter(node, new Piece(_added.Length, 1, BufferType.Added));
+                _added.Append(c);
                 break;
             }
             // in the part of piece (split)
@@ -111,17 +115,19 @@ public class PieceTableText
                 int localIndex = index - offset;
                 int secondLength = piece.Length - localIndex;
 
-                piece.Length = localIndex;
+                // Replace current piece with shortened version
+                var newFirstPiece = new Piece(piece.Start, localIndex, piece.Type);
+                node.Value = newFirstPiece;
 
-                var inserted = pieces.AddAfter(
+                var inserted = Pieces.AddAfter(
                     node,
-                    new Piece(added.Length, 1, BufferType.Added)
+                    new Piece(_added.Length, 1, BufferType.Added)
                 );
-                added.Append(c);
+                _added.Append(c);
 
                 if (secondLength > 0)
                 {
-                    pieces.AddAfter(
+                    Pieces.AddAfter(
                         inserted,
                         new Piece(piece.Start + localIndex, secondLength, piece.Type)
                     );
@@ -138,13 +144,13 @@ public class PieceTableText
     {
         if (length <= 0)
             return "";
-        lines.OnDelete(index, length);
+        _lines.OnDelete(index, length);
         
         int offset = 0;
         int remaining = length;
         bool firstPiece = true;
 
-        var node = pieces.First;
+        var node = Pieces.First;
         
         StringBuilder removed = new(); 
         
@@ -176,28 +182,29 @@ public class PieceTableText
             // cały piece do usuniecia
             if (localStart == 0 && localLen == piece.Length)
             {
-                pieces.Remove(node);
-                
+                Pieces.Remove(node);
+
                 int bufferStart = piece.Start;
 
                 removed.Append(
                     piece.Type == BufferType.Added
-                        ? added.ToString(bufferStart, piece.Length)
-                        : original.Substring(bufferStart, piece.Length)
+                        ? _added.ToString(bufferStart, piece.Length)
+                        : _original.Substring(bufferStart, piece.Length)
                 );
             }
             // początek
             else if (localStart == 0)
             {
-                piece.Start += localLen;
-                piece.Length -= localLen;
-                removed.Append(piece.Type == BufferType.Added ? added.ToString(pieceStart, localLen) : original.Substring(pieceStart, localLen));
+                var newPiece = new Piece(piece.Start + localLen, piece.Length - localLen, piece.Type);
+                node.Value = newPiece;
+                removed.Append(piece.Type == BufferType.Added ? _added.ToString(piece.Start, localLen) : _original.Substring(piece.Start, localLen));
             }
             // koniec
             else if (localStart + localLen == piece.Length)
             {
-                piece.Length -= localLen;
-                removed.Append(piece.Type == BufferType.Added ? added.ToString(pieceEnd - localLen, localLen) : original.Substring(pieceEnd - localLen, localLen));
+                var newPiece = new Piece(piece.Start, piece.Length - localLen, piece.Type);
+                node.Value = newPiece;
+                removed.Append(piece.Type == BufferType.Added ? _added.ToString(piece.Start + piece.Length - localLen, localLen) : _original.Substring(piece.Start + piece.Length - localLen, localLen));
             }
             // środek
             else
@@ -210,9 +217,10 @@ public class PieceTableText
                     piece.Type
                 );
 
-                piece.Length = localStart;
-                pieces.AddAfter(node, right);
-                removed.Append(piece.Type == BufferType.Added ? added.ToString(pieceStart, localStart + localLen) : original.Substring(pieceStart, localStart + localLen));
+                var left = new Piece(piece.Start, localStart, piece.Type);
+                node.Value = left;
+                Pieces.AddAfter(node, right);
+                removed.Append(piece.Type == BufferType.Added ? _added.ToString(piece.Start + localStart, localLen) : _original.Substring(piece.Start + localStart, localLen));
             }
 
             remaining -= localLen;
@@ -221,26 +229,6 @@ public class PieceTableText
         }
 
         return removed.ToString();
-    }
-
-    public char GetCharacter(int index)
-    {
-        var node = pieces.First;
-        var offset = 0;
-        while (node != null)
-        {
-            Piece piece = node.Value;
-            if (index < offset + piece.Length)
-            {
-                int localIndex = index - offset;
-                return (piece.Type == BufferType.Added) ? added[piece.Start + localIndex] : original[piece.Start + localIndex];
-            }
-            
-            offset += node.Value.Length;
-            node = node.Next;
-        }
-
-        throw new ArgumentOutOfRangeException(nameof(index));
     }
 
     public string GetText(int offset, int length)
@@ -257,7 +245,7 @@ public class PieceTableText
         int globalPos = 0;
         int remaining = length;
 
-        var node = pieces.First;
+        var node = Pieces.First;
         while (node != null && remaining > 0)
         {
             var piece = node.Value;
@@ -282,9 +270,9 @@ public class PieceTableText
             int sourceStart = piece.Start + takeFromPieceStart;
 
             if (piece.Type == BufferType.Added)
-                result.Append(added.ToString(sourceStart, takeLen));
+                result.Append(_added.ToString(sourceStart, takeLen));
             else
-                result.Append(original.AsSpan(sourceStart, takeLen));
+                result.Append(_original.AsSpan(sourceStart, takeLen));
 
             remaining -= takeLen;
 
@@ -301,8 +289,8 @@ public class PieceTableText
     public string Export()
     {
         string result = "";
-        string addedParsed = added.ToString();
-        foreach (var piece in pieces)
+        string addedParsed = _added.ToString();
+        foreach (var piece in Pieces)
         {
             if (piece.Type == BufferType.Added)
             {
@@ -310,12 +298,46 @@ public class PieceTableText
             }
             else
             {
-                result += original.Substring(piece.Start, piece.Length);
+                result += _original.Substring(piece.Start, piece.Length);
             }
         }
 
         return result;
     }
+    
+    public void MergePieces()
+    {
+        var node = Pieces.First;
+        while (node != null && node.Next != null)
+        {
+            var current = node.Value;
+            var next = node.Next.Value;
 
-    public TextLines GetLines() => lines;
+            // Check if pieces are adjacent in the same buffer and can be merged
+            if (current.Type == next.Type &&
+                current.Start + current.Length == next.Start)
+            {
+                // Create new merged piece
+                var merged = new Piece(current.Start, current.Length + next.Length, current.Type);
+                node.Value = merged;
+
+                // Remove the next piece
+                var toRemove = node.Next;
+                Pieces.Remove(toRemove);
+                // Don't advance node, check if we can merge with the new next
+            }
+            else
+            {
+                node = node.Next;
+            }
+        }
+    }
+
+    public void RestoreSnapshot(TextSnapshot snapshot)
+    {
+        Pieces = new LinkedList<Piece>(snapshot.Pieces);
+        _lines = snapshot.Lines.Clone();
+        _original = snapshot.Original;
+        _added = new StringBuilder(snapshot.Added);
+    }
 }

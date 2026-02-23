@@ -9,6 +9,8 @@ public interface ICommand
     public ActionResult Execute(CodeBoxViewModel sender);
 
     public void Undo(CodeBoxViewModel sender);
+
+    public void Redo(CodeBoxViewModel sender);
 }
 public enum ActionResult
 {

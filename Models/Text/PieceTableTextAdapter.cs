@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using BubaCode.ViewModels;
 
 namespace BubaCode.Models;
@@ -8,6 +9,7 @@ public class PieceTableTextAdapter : ITextStorage
     private PieceTableText _text;
     private CodeBoxViewModel _vm;
     public int LinesCount => _text.GetLines().Count;
+    public TextLines Lines => _text.GetLines();
     public event Action? LinesCountChanged;
 
     
@@ -136,6 +138,24 @@ public class PieceTableTextAdapter : ITextStorage
         return _text.GetText(offset, GetLineLength(line));
     }
 
+    public void RestoreSnapshot(TextSnapshot snapshot)
+    {
+        int oldLines = LinesCount;
+        _text.RestoreSnapshot(snapshot);
+        if (oldLines != LinesCount)
+            LinesCountChanged?.Invoke();
+    }
+
+    public TextSnapshot TakeSnapshot()
+    {
+        return new TextSnapshot(
+            _text.Pieces,
+            _text.GetLines(),
+            _text.GetOriginal(),
+            _text.GetAdded()
+        );
+    }
+
     public int GetLineLength(int line)
     {
         if (line < 0 || line >= LinesCount)
@@ -155,7 +175,6 @@ public class PieceTableTextAdapter : ITextStorage
 
         return len;
     }
-    public TextLines Lines => _text.GetLines();
     public override string ToString()
     {
         return _text.Export();

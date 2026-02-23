@@ -23,5 +23,8 @@ public class CopyCommand : ICommand
         return;
     }
 
-    
+    public void Redo(CodeBoxViewModel sender)
+    {
+        return;
+    }
 }

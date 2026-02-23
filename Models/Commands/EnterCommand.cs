@@ -15,6 +15,10 @@ public class EnterCommand : TextEditingCommand, ICommand
     public void Undo(CodeBoxViewModel sender)
     {
         OnUndo(sender);
-        sender.Text.UndoHandleEnter();
+    }
+
+    public void Redo(CodeBoxViewModel sender)
+    {
+        OnRedo(sender);
     }
 }

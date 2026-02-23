@@ -161,6 +161,16 @@ public partial class EditorText : ObservableObject, ITextStorage
         return _lines[line].Text;
     }
 
+    public void RestoreSnapshot(TextSnapshot snapshot)
+    {
+        throw new NotImplementedException();
+    }
+
+    public TextSnapshot TakeSnapshot()
+    {
+        throw new NotImplementedException();
+    }
+
     public int GetLineLength(int line)
     {
         if (line < 0 || line >= Lines.Count)

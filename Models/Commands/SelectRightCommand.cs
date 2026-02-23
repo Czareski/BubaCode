@@ -13,9 +13,14 @@ public class SelectRightCommand : ICommand
         }
         sender.Caret.Column += 1;
         sender.Selection.Update(new Point(sender.Caret.Line, sender.Caret.Column));
-        return ActionResult.AddToStack;
+        return ActionResult.DontAddToStack;
     }
     public void Undo(CodeBoxViewModel sender)
+    {
+        return;
+    }
+
+    public void Redo(CodeBoxViewModel sender)
     {
         return;
     }

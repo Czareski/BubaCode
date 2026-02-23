@@ -4,8 +4,18 @@ namespace BubaCode.Models;
 
 public class TextLines
 {
-    private List<int> newLineOffsets = new([0]);
+    private List<int> newLineOffsets;
     public int Count => newLineOffsets.Count;
+
+    private TextLines(List<int> offsets)
+    {
+        newLineOffsets = offsets;
+    }
+
+    public TextLines()
+    {
+        newLineOffsets = new([0]);
+    }
     public void OnInsert(int offset, string text)
     {
         if (string.IsNullOrEmpty(text))
@@ -98,5 +108,10 @@ public class TextLines
         if (lineIndex < 0)
             lineIndex = ~lineIndex - 1;
         return lineIndex;
+    }
+
+    public TextLines Clone()
+    {
+        return new TextLines(new List<int>(newLineOffsets));
     }
 }

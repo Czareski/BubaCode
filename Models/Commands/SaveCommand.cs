@@ -1,24 +1,21 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using BubaCode.ViewModels;
+﻿using BubaCode.ViewModels;
 
 namespace BubaCode.Models.Commands;
 
-public class UndoCommand : ICommand
+public class SaveCommand : ICommand
 {
-    private ICommand? _recalledCommand;
     public ActionResult Execute(CodeBoxViewModel sender)
     {
-        sender.GetActions().Undo();
+        sender.Export();
         return ActionResult.DontAddToStack;
     }
 
     public void Undo(CodeBoxViewModel sender)
     {
-        return;
     }
 
     public void Redo(CodeBoxViewModel sender)
     {
-        return;
+
     }
 }

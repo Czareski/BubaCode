@@ -24,6 +24,7 @@ public class ShortcutRegistry
         Register(new KeyCombination(Key.Right).Shift(true), new SelectRightCommand());
         Register(new KeyCombination(Key.Z).Ctrl(true), new UndoCommand());
         Register(new KeyCombination(Key.Y).Ctrl(true), new RedoCommand());
+        Register(new KeyCombination(Key.S).Ctrl(true), new SaveCommand());
     }
     
     public void Register(KeyCombination combination, ICommand shortcut)

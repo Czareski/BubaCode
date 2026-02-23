@@ -2,18 +2,24 @@
 
 namespace BubaCode.Models.Commands;
 
-public class RemoveFromSelectionCommand : ICommand
+public class RemoveFromSelectionCommand : TextEditingCommand, ICommand
 {
-    private string removedText;
     public ActionResult Execute(CodeBoxViewModel sender)
     {
         if (sender.Selection == null) return ActionResult.DontAddToStack;
-        removedText = sender.Text.Remove(sender.Selection);
+        OnExecute(sender);
+        sender.Text.Remove(sender.Selection);
+        MakeCaretAfterSnapshot(sender);
         return ActionResult.AddToStack;
     }
 
     public void Undo(CodeBoxViewModel sender)
     {
-        sender.Text.InsertText(removedText);
+        OnUndo(sender);
+    }
+
+    public void Redo(CodeBoxViewModel sender)
+    {
+        OnRedo(sender);
     }
 }
