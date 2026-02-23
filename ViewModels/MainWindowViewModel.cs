@@ -19,6 +19,10 @@ public partial class MainWindowViewModel : ViewModelBase
     private CodeBoxViewModel _codeBoxViewModel;
     [ObservableProperty]
     private FileExplorerViewModel _fileExplorerViewModel;
+    [ObservableProperty]
+    private WelcomeViewModel _welcomeViewModel;
+    [ObservableProperty]
+    private bool _showWelcomeView = true;
     private FilesService? _fileService;
     private IErrorService? _errorService;
     private Dictionary<Uri, CodeBoxViewModel> _fileCodeBoxCache = new();
@@ -28,11 +32,11 @@ public partial class MainWindowViewModel : ViewModelBase
         _errorViewModel = new ErrorViewModel(_errorService);
         _fileService = new FilesService(_errorService);
         _fileExplorerViewModel = new FileExplorerViewModel(_fileService, this);
-        
+
         _fileBarViewModel = new FileBarViewModel(_fileService, _fileExplorerViewModel);
         _codeBoxViewModel = new CodeBoxViewModel(_fileService);
-        
-        
+        _welcomeViewModel = new WelcomeViewModel(_fileService);
+
     }
     public void SetCodeBoxViewModel(Uri uri)
     {

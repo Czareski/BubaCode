@@ -41,11 +41,11 @@
                               HorizontalScrollBarVisibility="Visible"
                               VerticalScrollBarVisibility="Auto">
                     <Grid ColumnDefinitions="Auto, *">
-                        <views:LineNumberBox 
+                        <views:LineNumberBox
                             DataContext="{Binding CodeBoxViewModel}"
                             Background="#0A0A0A"
                             />
-                        
+
                         <views:CodeBox Grid.Column="1"
                                        MinHeight="{Binding Viewport.Height, RelativeSource={RelativeSource AncestorType=ScrollViewer}}"
                                        DataContext="{Binding CodeBoxViewModel}"
@@ -54,6 +54,12 @@
                                        Background="#0A0A0A"/>
                     </Grid>
                 </ScrollViewer>
+
+            <!-- Welcome View overlay -->
+            <views:WelcomeView Grid.Column="1"
+                               x:Name="WelcomeViewOverlay"
+                               DataContext="{Binding WelcomeViewModel}"
+                               IsVisible="{Binding ShowWelcomeView}"/>
         </Grid>
         <views:ErrorView DataContext="{Binding ErrorViewModel}"/>
     </Grid>

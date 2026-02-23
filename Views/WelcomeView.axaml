@@ -1,0 +1,35 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:vm="using:BubaCode.ViewModels"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="BubaCode.Views.WelcomeView"
+             x:DataType="vm:WelcomeViewModel">
+
+    <Panel Background="#1E1E1E">
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+            <TextBlock Text="{Binding Text}"
+                       FontSize="24"
+                       Foreground="#CCCCCC"
+                       HorizontalAlignment="Center"
+                       Margin="0 0 0 40"/>
+
+            <Button Content="Otwórz Folder"
+                    FontSize="18"
+                    Padding="30 15"
+                    HorizontalAlignment="Center"
+                    Background="#007ACC"
+                    Foreground="White"
+                    Command="{Binding OpenProject}"
+                    IsVisible="{Binding ShowButton}"
+                    CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}">
+                <Button.Styles>
+                    <Style Selector="Button:pointerover">
+                        <Setter Property="Background" Value="#1C97EA"/>
+                    </Style>
+                </Button.Styles>
+            </Button>
+        </StackPanel>
+    </Panel>
+</UserControl>
