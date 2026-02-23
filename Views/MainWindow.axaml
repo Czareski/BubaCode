@@ -44,6 +44,7 @@
                         <views:LineNumberBox
                             DataContext="{Binding CodeBoxViewModel}"
                             Background="#0A0A0A"
+                            x:Name="Lines"
                             />
 
                         <views:CodeBox Grid.Column="1"

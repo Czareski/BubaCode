@@ -10,7 +10,7 @@ public partial class WelcomeViewModel : ViewModelBase
 {
     [ObservableProperty] private bool _showWelcomeView = true;
     [ObservableProperty] private bool _showButton = true;
-    [ObservableProperty] private string _text = "Witaj w BubaCode! Wybierz projekt do edycji...";
+    [ObservableProperty] private string _text = "Welcome in BubaCode! Choose a project directory to begin...";
     private FilesService _fileService;
 
     public WelcomeViewModel(FilesService fileService)
@@ -22,7 +22,7 @@ public partial class WelcomeViewModel : ViewModelBase
 
     private void OnFolderOpened(DirectoryInfo info)
     {
-        Text = "Miłego tworzenia!";
+        Text = "Have fun, sir!";
         ShowButton = false;
         _fileService.FolderOpened -= OnFolderOpened;
     }
@@ -34,7 +34,7 @@ public partial class WelcomeViewModel : ViewModelBase
     [RelayCommand]
     public async void OpenProject(Window window)
     {
-        await _fileService.PickFileAsync(window);
+        await _fileService.OpenProject(window);
     }
     
 }

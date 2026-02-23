@@ -41,7 +41,6 @@ public partial class CodeBoxViewModel : ViewModelBase
         {
             return;
         }
-
         switch (e.Key)
         {
             case Key.Up:
@@ -70,25 +69,29 @@ public partial class CodeBoxViewModel : ViewModelBase
                 break;
             case Key.Enter:
                 _actions.Do(new EnterCommand());
+                _fileService.SetFileDirty?.Invoke(true);
                 break;
             case Key.Back:
                 if (Selection != null)
                 {
                     _actions.Do(new RemoveFromSelectionCommand());
                     Selection = null;
+                    _fileService.SetFileDirty?.Invoke(true);
                     return;
                 }
                 _actions.Do(new RemoveCharacterCommand());
-                
+                _fileService.SetFileDirty?.Invoke(true);
                 break;
             case Key.Tab:
                 Text.HandleTab();
                 e.Handled = true;
+                _fileService.SetFileDirty?.Invoke(true);
                 break;
             case Key.LeftCtrl:
                 return;
             default:
-                _actions.Do(new TypeCharacterCommand(e));
+                _actions.Do(new TypeTextCommand(e));
+                _fileService.SetFileDirty?.Invoke(true);
                 break;
         }
         _fileService.SetFileDirty?.Invoke(true);
@@ -124,6 +127,12 @@ public partial class CodeBoxViewModel : ViewModelBase
         Caret.Column = Text.GetLineLength(Caret.Line);
         _imported = true;
     }
+
+    public void Export()
+    {
+        _fileService.Export();
+    }
+    
     public Actions GetActions()
     {
         return _actions;

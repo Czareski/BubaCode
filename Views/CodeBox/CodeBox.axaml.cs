@@ -235,6 +235,7 @@ public partial class CodeBox : Control
     public override void Render(DrawingContext context)
     {
         base.Render(context);
+        
         var background = Background;
 
         if (background != null)
@@ -280,6 +281,8 @@ public partial class CodeBox : Control
 
         InvalidateMeasure();
         InvalidateVisual();
+        var lines = this.FindControl<LineNumberBox>("Lines");
+        lines?.InvalidateVisual();
     }
 
     private void BuildVisualLines()

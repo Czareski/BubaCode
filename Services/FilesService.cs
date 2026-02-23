@@ -25,33 +25,6 @@ public class FilesService
         _errorService = errorService;
     }
 
-    public void ClearFileImportedListners()
-    {
-        FileImported = null;
-    }
-    public async Task PickFileAsync(Window window)
-    {
-        OpenFolder(window);
-        return;
-        var files = await window.StorageProvider.OpenFilePickerAsync(
-            new FilePickerOpenOptions
-            {
-                AllowMultiple = false
-            });
-
-        try
-        {
-            CurrentFile = files.FirstOrDefault().Path;
-        }
-        catch (NullReferenceException ex)
-        {
-            _errorService.ReportError("No file selected");
-            return;
-        }
-
-        Import(CurrentFile);
-    }
-
     public void Import(Uri importedFile)
     {
         CurrentFile = importedFile;
@@ -81,7 +54,7 @@ public class FilesService
         SetFileDirty?.Invoke(false);
     }
 
-    public async Task OpenFolder(Window window)
+    public async Task OpenProject(Window window)
     {
         var folders = await window.StorageProvider.OpenFolderPickerAsync(
             new FolderPickerOpenOptions
@@ -98,7 +71,6 @@ public class FilesService
         {
             _errorService.ReportError("No folder selected");
             Debug.WriteLine(ex.Message);
-            return;
         }
     }
     

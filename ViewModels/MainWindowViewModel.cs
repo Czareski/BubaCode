@@ -33,7 +33,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _fileService = new FilesService(_errorService);
         _fileExplorerViewModel = new FileExplorerViewModel(_fileService, this);
 
-        _fileBarViewModel = new FileBarViewModel(_fileService, _fileExplorerViewModel);
+        _fileBarViewModel = new FileBarViewModel(_fileService);
         _codeBoxViewModel = new CodeBoxViewModel(_fileService);
         _welcomeViewModel = new WelcomeViewModel(_fileService);
 

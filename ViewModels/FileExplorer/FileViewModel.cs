@@ -18,9 +18,7 @@ public partial class FileViewModel : ViewModelBase, IFileExplorerItem
     [ObservableProperty]
     private string _name;
     [ObservableProperty] private bool _dirty = false;
-
-    public string FileName => Name;
-
+    
     public FileViewModel(FileInfo fileInfo)
     {
         _fileInfo = fileInfo;

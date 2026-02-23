@@ -12,16 +12,14 @@ namespace BubaCode.ViewModels;
 public partial class FileBarViewModel : ViewModelBase
 {
     [ObservableProperty]
-    private string _fileName = "New File";
+    private string _fileName = "";
 
     [ObservableProperty] private string _filePath = "";
     private FilesService _fileService;
-    private FileExplorerViewModel _fileExplorerViewModel;
 
-    public FileBarViewModel(FilesService fileService, FileExplorerViewModel fileExplorerViewModel)
+    public FileBarViewModel(FilesService fileService)
     {
         _fileService = fileService;
-        _fileExplorerViewModel = fileExplorerViewModel;
         _fileService.FileImported += SetFilePath;
     }
     
@@ -34,7 +32,7 @@ public partial class FileBarViewModel : ViewModelBase
     [RelayCommand]
     public async void Open(Window window)
     {
-        await _fileService.PickFileAsync(window);
+        await _fileService.OpenProject(window);
     }
     
     public void SetFilePath(Uri importedFile)

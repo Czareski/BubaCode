@@ -28,6 +28,40 @@ public partial class LineNumberBox : Control
         _metrics = new TextMetrics(_typeface.GlyphTypeface, 16);
     }
 
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        
+        // Find parent ScrollViewer
+        var parent = this.GetVisualParent();
+        while (parent != null)
+        {
+            if (parent is ScrollViewer scrollViewer)
+            {
+                _scrollViewer = scrollViewer;
+                _scrollViewer.ScrollChanged += OnScrollChanged;
+                break;
+            }
+            parent = parent.GetVisualParent();
+        }
+    }
+
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnDetachedFromVisualTree(e);
+        
+        if (_scrollViewer != null)
+        {
+            _scrollViewer.ScrollChanged -= OnScrollChanged;
+            _scrollViewer = null;
+        }
+    }
+
+    private void OnScrollChanged(object? sender, ScrollChangedEventArgs e)
+    {
+        InvalidateVisual();
+    }
+
     protected override void OnDataContextChanged(EventArgs e)
     {
         if (_vm?.Text != null)

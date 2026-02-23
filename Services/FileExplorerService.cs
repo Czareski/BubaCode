@@ -135,6 +135,6 @@ public class FileExplorerService
 
     public void TryGetValue(Uri uri, out IFileExplorerItem? item)
     {
-        _items.TryGetValue(uri.AbsolutePath, out item);
+        _items.TryGetValue(uri.LocalPath, out item);
     }
 }
