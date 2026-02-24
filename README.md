@@ -7,6 +7,9 @@
 ![Avalonia](https://img.shields.io/badge/Avalonia-11.3.9-orange)
 > ⚠️ While Avalonia supports Windows, Linux, and macOS, this project has only been tested on Windows.
 
+![gif](https://github.com/user-attachments/assets/e57bdc24-e015-444f-90f6-732ac1f44c40)
+
+
 ---
 
 ## 📋 Table of Contents

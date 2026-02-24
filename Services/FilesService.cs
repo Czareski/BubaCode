@@ -64,7 +64,7 @@ public class FilesService
         try
         {
             var path = folders.FirstOrDefault().Path;
-            DirectoryInfo directory = new DirectoryInfo(path.AbsolutePath);
+            DirectoryInfo directory = new DirectoryInfo(path.LocalPath);
             FolderOpened?.Invoke(directory);           
         }
         catch (Exception ex)
